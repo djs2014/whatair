@@ -9,6 +9,7 @@ using WhatAppBase.Utils;
 using Toybox.Math;
 
 var gBGServiceHandler = new BGServiceHandler();
+
 // Default false, n the background process, I set it to true.
 // (getServiceDelegate()), globals are not shared between foreground and
 // background process

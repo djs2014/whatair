@@ -129,6 +129,13 @@ class whatairView extends WatchUi.DataField {
                   Graphics.TEXT_JUSTIFY_LEFT);
     var counter = "#" + gBGServiceHandler.getCounterStats();
     dc.drawText(1, 2 * hfInfo + 1, Graphics.FONT_SMALL, counter, Graphics.TEXT_JUSTIFY_LEFT);
+    var next = gBGServiceHandler.getWhenNextRequest();
+    if (next != null) {
+        var wCounter = dc.getTextWidthInPixels(counter, Graphics.FONT_SMALL);
+        next = "(" + next + ")";
+        dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(1 + wCounter + 1, 2 * hfInfo + 1, Graphics.FONT_TINY, next, Graphics.TEXT_JUSTIFY_LEFT);
+    }
     // Longest text                  
     var textWidth = dc.getTextWidthInPixels(airQuality.aqiName[5], Graphics.FONT_MEDIUM) + 2;
     var radius = (dc.getWidth() - textWidth) / 16;
@@ -185,6 +192,13 @@ class whatairView extends WatchUi.DataField {
                   mLabel + " " + airQuality.airQuality(), Graphics.TEXT_JUSTIFY_LEFT);
     var counter = "#" + gBGServiceHandler.getCounterStats();
     dc.drawText(dc.getWidth()-1, hfl, Graphics.FONT_SMALL, counter, Graphics.TEXT_JUSTIFY_RIGHT);                  
+    var next = gBGServiceHandler.getWhenNextRequest();
+    if (next != null) {
+        var wCounter = dc.getTextWidthInPixels(counter, Graphics.FONT_SMALL);
+        next = "(" + next + ")";
+        dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(dc.getWidth()- 1 - wCounter - 1, hfl, Graphics.FONT_TINY, next, Graphics.TEXT_JUSTIFY_RIGHT);
+    }
 
     var showValue = true;
     var radius = Utils.min(dc.getFontHeight(Graphics.FONT_MEDIUM), (dc.getHeight() - 2 * hfl) / 4);
@@ -262,5 +276,5 @@ class whatairView extends WatchUi.DataField {
                   Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
   }
-  
+
 }

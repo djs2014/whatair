@@ -110,6 +110,7 @@ class BGServiceHandler {
     }
 
     function startBGservice() {
+        mError = ERROR_BG_NONE;
         if (mBGDisabled) {
             System.println("startBGservice Service is disabled, no scheduling"); 
             return;
@@ -137,6 +138,15 @@ class BGServiceHandler {
             mError = ERROR_BG_EXCEPTION;
             mBGActive = false;
         } 
+    }
+
+    function getWhenNextRequest() {
+        if (hasError()) { return null; }
+        var lastTime = Background.getLastTemporalEventTime();
+        if (lastTime == null) { return null; }
+        var elapsedSeconds = Time.now().value() - lastTime.value();
+        var secondsToNext = (mUpdateFrequencyInMinutes * 60) - elapsedSeconds;
+        return secondsToNext;
     }
 
     function onBackgroundData(data, obj, cbProcessData) {                
