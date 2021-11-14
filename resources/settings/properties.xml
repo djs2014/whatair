@@ -1,0 +1,16 @@
+<properties>
+	<property id="weatherDataSource" type="number">1</property>
+	
+	<property id="openWeatherAPIKey" type="string"></property>
+
+	<property id="updateFrequencyWebReq" type="number">5</property>	
+	<property id="showObservationTime" type="boolean">true</property>	
+	<property id="observationTimeDelayedMinutesThreshold" type="number">30</property>		
+	
+	<property id="minimalGPSquality" type="number">3</property>	
+
+	<property id="openWeatherProxy" type="string"></property>
+	<property id="openWeatherProxyAPIKey" type="string"></property>
+
+	<property id="demo" type="boolean">false</property>	
+</properties>

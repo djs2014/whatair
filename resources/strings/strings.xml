@@ -1,0 +1,12 @@
+<strings>
+    <string id="AppName">What air</string>
+
+    <string id="Label">Air</string>
+    <string id="OpenWeatherAPIKey">Open weather map API key</string>
+
+    <string id="UpdateFrequencyWebReq">Frequency web request (minutes)</string>    
+    <string id="ObservationTimeDelayedMinutesThreshold">Show warning when request is delayed for x minutes</string>
+    
+    <string id="MinimalGPSquality">Minimal GPS quality to start BG service</string>
+    <string id="Demo">Demo</string>
+</strings>
