@@ -1,5 +1,7 @@
 init git
 
+- set concentration limit using settings
+
 - status
     phone|gps|active|error
     - gBGActive 
