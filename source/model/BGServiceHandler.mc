@@ -146,7 +146,7 @@ class BGServiceHandler {
         if (lastTime == null) { return null; }
         var elapsedSeconds = Time.now().value() - lastTime.value();
         var secondsToNext = (mUpdateFrequencyInMinutes * 60) - elapsedSeconds;
-        return secondsToNext;
+        return Utils.secondsToShortTimeString(secondsToNext, "{m}:{s}");
     }
 
     function onBackgroundData(data, obj, cbProcessData) {                
