@@ -7,17 +7,9 @@ using Toybox.Lang;
 // Background not allowed to have GPS access, but can get last known position
 using Toybox.Position;
 
-(
-    : background) class AirQualityBGService extends Toybox.System
-    .ServiceDelegate {
-  // const ERROR_BG_NONE = 0;      
-  // const ERROR_BG_NO_API_KEY = -1;
-  // const ERROR_BG_NO_POSITION = -2;
-  // const ERROR_BG_NO_PROXY = -3;
-  // const ERROR_BG_EXCEPTION = -4;
-  // const ERROR_BG_EXIT_DATA_SIZE_LIMIT = -5;
-  // const ERROR_BG_INVALID_BACKGROUND_TIME = -6;
-
+(:background) 
+class AirQualityBGService extends Toybox.System.ServiceDelegate {
+  
   function initialize() {
     System.ServiceDelegate.initialize();
     System.println("Initialize airquality background service");
@@ -52,9 +44,7 @@ using Toybox.Position;
         return;
       }    
     }
-
-    // Application.Storage.setValue("Temperature", 200.4);
-
+    
     var lat = location[0];
     var lon = location[1];
     requestWeatherData(lat, lon, apiKey, proxy, proxyApiKey);

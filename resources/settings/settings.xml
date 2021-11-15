@@ -14,9 +14,21 @@
     <setting propertyKey="@Properties.observationTimeDelayedMinutesThreshold" title="@Strings.ObservationTimeDelayedMinutesThreshold">
 		<settingConfig type="numeric" min="0" max="60" />
 	</setting>	
-    <setting propertyKey="@Properties.minimalGPSquality" title="@Strings.MinimalGPSquality">
+    <!-- <setting propertyKey="@Properties.minimalGPSquality" title="@Strings.MinimalGPSquality">
 		<settingConfig type="numeric" min="0" max="4" />
-	</setting>	
+	</setting>	 -->
+
+	<setting propertyKey="@Properties.minimalGPSquality" title="@Strings.MinimalGPSquality" 
+	prompt="@Strings.MinimalGPSqualityPrompt">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.GpsQualityNotAvailable</listEntry>
+            <listEntry value="1">@Strings.GpsQualityLastKnown</listEntry>            
+            <listEntry value="2">@Strings.GpsQualityPoor</listEntry>            
+            <listEntry value="3">@Strings.GpsQualityUsable</listEntry>            
+            <listEntry value="4">@Strings.GpsQualityGood</listEntry>            	
+        </settingConfig>
+    </setting>      
+
 	<setting propertyKey="@Properties.demo" title="@Strings.Demo">
 		<settingConfig type="boolean" />
 	</setting> 	
