@@ -8,15 +8,17 @@ using WhatAppBase.Utils;
 class BGServiceHandler {
     const ERROR_BG_NONE = 0;      
     const ERROR_BG_NO_API_KEY = -1;
-    const ERROR_BG_NO_POSITION = -2;
-    const ERROR_BG_NO_PROXY = -3;
+    
+    const ERROR_BG_NO_PROXY = -3; // @@ Not yet used
     const ERROR_BG_EXCEPTION = -4;
     const ERROR_BG_EXIT_DATA_SIZE_LIMIT = -5;
-    const ERROR_BG_INVALID_BACKGROUND_TIME = -6;
+    const ERROR_BG_INVALID_BACKGROUND_TIME = -6; // @@ Not yet used
     const ERROR_BG_NOT_SUPPORTED = -7;
+    const ERROR_BG_HTTPSTATUS = -10;
+
+    const ERROR_BG_NO_POSITION = -2;
     const ERROR_BG_NO_PHONE = -8;
     const ERROR_BG_GPS_LEVEL = -9;
-    const ERROR_BG_HTTPSTATUS = -10;
 
     const HTTP_OK = 200;
     var mCurrentLocation = null;
@@ -68,16 +70,10 @@ class BGServiceHandler {
         if (mBGDisabled) { return; }
         
         try {
-            if (mGPSlevel < mMinimalGPSLevel) { 
-                mError = ERROR_BG_GPS_LEVEL;                
-            } else if (!mPhoneConnected)     {
-                mError = ERROR_BG_NO_PHONE;
-                
-            } else if (mCurrentLocation != null && !mCurrentLocation.hasLocation()) {
-                mError = ERROR_BG_NO_POSITION;                
-            }
+            testOnNonFatalError();            
+            
             // @@ disable temporary when position not changed ( less than x km distance) and last call < x minutes?
-            if (hasError()) {
+            if (hasError()) {                
                 stopBGservice();
                 return;
             }
@@ -95,6 +91,20 @@ class BGServiceHandler {
         // }      
     }
     
+    hidden function testOnNonFatalError() {
+        if (mError == ERROR_BG_GPS_LEVEL || mError == ERROR_BG_NO_PHONE || mError == ERROR_BG_NO_POSITION ) {
+            mError = ERROR_BG_NONE;
+        }
+
+        if (mGPSlevel < mMinimalGPSLevel) { 
+            mError = ERROR_BG_GPS_LEVEL;                
+        } else if (!mPhoneConnected)     {
+            mError = ERROR_BG_NO_PHONE;            
+        } else if (mCurrentLocation != null && !mCurrentLocation.hasLocation()) {
+            mError = ERROR_BG_NO_POSITION;                
+        }
+    }
+
     function stopBGservice() {
         if (!mBGActive) { return; }
         try {

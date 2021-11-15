@@ -15,3 +15,20 @@ https://www.iqair.com/air-pollution-data-api
 
 ### Settings
 
+Minimal GPS quality level: Usable
+
+Frequency of web request in minutes: 5 min
+
+When an error happens the background scheduling stops. When the error is resolved, the background scheduling is started again.
+
+Errors:
+- ApiKey?: No Open Weather api key configured
+- Position?: GPS position not available
+- Error?: General exception
+- Supported?: Not supported
+- Memory?: Response of weather request is too big
+- Phone?: Phone not connected
+- Gps quality?: Gps quality not good enough
+- Http[XXX]: Http status code. Example 401 is Not authorized. Then the api key is not valid.
+
+Save settings will reset the error state (if not automatically).

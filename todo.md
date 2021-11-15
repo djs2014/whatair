@@ -1,12 +1,10 @@
-Test
-    - wrong api key -> message?
-    - wrong url
-    - gsp level - last known -> 
 Widget ..
 
 - set concentration limit using settings
   - docu etc.
  - show last known location if no gps on screen
+- refactor draw stats code
+- alert / beep
 
 
 - status
