@@ -16,9 +16,12 @@ class BGServiceHandler {
     const ERROR_BG_NOT_SUPPORTED = -7;
     const ERROR_BG_NO_PHONE = -8;
     const ERROR_BG_GPS_LEVEL = -9;
+    const ERROR_BG_HTTPSTATUS = -10;
 
+    const HTTP_OK = 200;
     var mCurrentLocation = null;
     var mError = 0; 
+    var mHttpStatus = HTTP_OK;
     var mPhoneConnected = false;
     var mGPSlevel = 0;
     var mBGActive = false;
@@ -41,13 +44,17 @@ class BGServiceHandler {
     function setMinimalGPSLevel(level) { mMinimalGPSLevel = level; }
     function setUpdateFrequencyInMinutes(minutes) {mUpdateFrequencyInMinutes = minutes; }
     function Disable() { mBGDisabled = true; }
-    function Enable() { mBGDisabled = false; }
+    function Enable() { mBGDisabled = false;  reset(); }
     function setObservationTimeDelayedMinutes(minutes) { mObservationTimeDelayedMinutesThreshold = minutes; }
     function isDataDelayed() {
         return Utils.isDelayedFor(mLastObservationMoment, mObservationTimeDelayedMinutesThreshold);
     }
-    function hasError() { return mError != ERROR_BG_NONE; }
-    
+    function hasError() { return mError != ERROR_BG_NONE || mHttpStatus != HTTP_OK; }
+    function reset() {
+        System.println("Reset BG service");
+        mError = 0;
+        mHttpStatus = HTTP_OK;
+    }
     function onCompute(info as Activity.Info) {
         mPhoneConnected = System.getDeviceSettings().phoneConnected;
         mGPSlevel = 0;    
@@ -62,19 +69,19 @@ class BGServiceHandler {
         
         try {
             if (mGPSlevel < mMinimalGPSLevel) { 
-                handleError(ERROR_BG_GPS_LEVEL);
-                return;
-            }
-            if (!mPhoneConnected)     {
-                handleError(ERROR_BG_NO_PHONE);
-                return;
-            }
-            if (mCurrentLocation != null && !mCurrentLocation.hasLocation()) {
-                handleError(ERROR_BG_NO_POSITION);
-                return;
+                mError = ERROR_BG_GPS_LEVEL;                
+            } else if (!mPhoneConnected)     {
+                mError = ERROR_BG_NO_PHONE;
+                
+            } else if (mCurrentLocation != null && !mCurrentLocation.hasLocation()) {
+                mError = ERROR_BG_NO_POSITION;                
             }
             // @@ disable temporary when position not changed ( less than x km distance) and last call < x minutes?
-            
+            if (hasError()) {
+                stopBGservice();
+                return;
+            }
+
             startBGservice();            
         } catch (ex) {
             ex.printStackTrace();
@@ -87,14 +94,7 @@ class BGServiceHandler {
         //     }
         // }      
     }
-
-    hidden function handleError(error) {
-        mError = error;
-        if (error != ERROR_BG_NONE) {
-            stopBGservice();
-        }
-    }
-
+    
     function stopBGservice() {
         if (!mBGActive) { return; }
         try {
@@ -110,7 +110,7 @@ class BGServiceHandler {
     }
 
     function startBGservice() {
-        mError = ERROR_BG_NONE;
+        //mError = ERROR_BG_NONE; ??
         if (mBGDisabled) {
             System.println("startBGservice Service is disabled, no scheduling"); 
             return;
@@ -125,6 +125,7 @@ class BGServiceHandler {
                 Background.registerForTemporalEvent(new Time.Duration(mUpdateFrequencyInMinutes * 60));
                 mBGActive = true;
                 mError = ERROR_BG_NONE;
+                mHttpStatus = HTTP_OK;
                 System.println("startBGservice registerForTemporalEvent [" +
                             mUpdateFrequencyInMinutes + "] minutes scheduled");
             } else {
@@ -152,9 +153,11 @@ class BGServiceHandler {
     function onBackgroundData(data, obj, cbProcessData) {                
         mLastRequestMoment = Time.now();
         if (data instanceof Number) {
-            mError = data;
+            mHttpStatus = data;
+            mError = ERROR_BG_HTTPSTATUS;
             System.println("onBackgroundData error responsecode: " + data);
         } else {
+            mHttpStatus = HTTP_OK;
             mData = data;
             mError = ERROR_BG_NONE;
             mRequestCounter = mRequestCounter + 1;
@@ -182,6 +185,9 @@ class BGServiceHandler {
     }
 
     function getError() as Lang.String {
+        if (mHttpStatus != HTTP_OK) {
+             return "Http [" + mHttpStatus.format("%0d") + "]";    
+        }
         if (mError == ERROR_BG_NONE) {
             return "";
         }
@@ -211,6 +217,9 @@ class BGServiceHandler {
         }
         if (mError == ERROR_BG_GPS_LEVEL) {
             return "Gps quality?";
+        }
+        if (mError == ERROR_BG_HTTPSTATUS) {
+            return "Http [" + mHttpStatus.format("%0d") + "]";
         }
         return "";
     }

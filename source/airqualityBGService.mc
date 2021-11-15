@@ -96,6 +96,7 @@ class AirQualityBGService extends Toybox.System.ServiceDelegate {
         Background.exit(gBGServiceHandler.ERROR_BG_EXCEPTION);
       }
     } else {
+      System.println(responseCode);
       Background.exit(responseCode);
     }
   }
