@@ -7,30 +7,27 @@ using Toybox.Lang;
 // Background not allowed to have GPS access, but can get last known position
 using Toybox.Position;
 
-(
-    : background) class AirQualityBGService extends Toybox.System
-    .ServiceDelegate {
-  // const ERROR_BG_NONE = 0;      
-  // const ERROR_BG_NO_API_KEY = -1;
-  // const ERROR_BG_NO_POSITION = -2;
-  // const ERROR_BG_NO_PROXY = -3;
-  // const ERROR_BG_EXCEPTION = -4;
-  // const ERROR_BG_EXIT_DATA_SIZE_LIMIT = -5;
-  // const ERROR_BG_INVALID_BACKGROUND_TIME = -6;
-
+(:background) 
+class AirQualityBGService extends Toybox.System.ServiceDelegate {
+  
   function initialize() {
     System.ServiceDelegate.initialize();
-    System.println("Initialize airquality background service");
+    System.println("AirQualityBGService Initialize");
   }
 
   function onTemporalEvent() {
-    System.println("onTemporalEvent");
+    System.println("AirQualityBGService onTemporalEvent");
 
-    var location = null;
-    var positionInfo = Position.getInfo();
-    if (positionInfo has : position && positionInfo.position != null) {
-      location = positionInfo.position.toDegrees();
-      System.println("onTemporalEvent location: " + location);
+    var degrees = Storage.getValue("lastKnownDegrees");
+    if (degrees != null) {
+      System.println("AirQualityBGService lastKnownDegrees: " + degrees);
+      Storage.deleteValue("lastKnownDegrees");
+    } else {
+      var positionInfo = Position.getInfo();
+      if (positionInfo has : position && positionInfo.position != null) {
+        degrees = positionInfo.position.toDegrees();
+        System.println("AirQualityBGService location: " + degrees);
+      }
     }
 
     var apiKey = Storage.getValue("openWeatherAPIKey");
@@ -40,10 +37,10 @@ using Toybox.Position;
       proxyApiKey = "";
     }
 
-    if (location == null || apiKey == null || apiKey.length() == 0) {
-      System.println(Lang.format("proxyurl[$1$] location [$2$] apiKey[$3$]",
-                                 [ proxy, location, apiKey ]));
-      if (location == null) {
+    if (degrees == null || apiKey == null || apiKey.length() == 0) {
+      System.println(Lang.format("AirQualityBGService proxyurl[$1$] location [$2$] apiKey[$3$]",
+                                 [ proxy, degrees, apiKey ]));
+      if (degrees == null) {
         Background.exit(ERROR_BG_NO_POSITION);
         return;
       }
@@ -52,11 +49,9 @@ using Toybox.Position;
         return;
       }    
     }
-
-    // Application.Storage.setValue("Temperature", 200.4);
-
-    var lat = location[0];
-    var lon = location[1];
+    
+    var lat = degrees[0];
+    var lon = degrees[1];
     requestWeatherData(lat, lon, apiKey, proxy, proxyApiKey);
   }
 
@@ -71,7 +66,7 @@ using Toybox.Position;
       url = Lang.format("$1$?lat=$2$&lon=$3$&appid=$4$",
                         [ base, lat, lon, apiKey ]);
     }
-    System.println("requestWeatherData url[" + url + "]");
+    System.println("AirQualityBGService requestWeatherData url[" + url + "]");
 
     var options = {
             :method => Communications.HTTP_REQUEST_METHOD_GET,
@@ -106,6 +101,7 @@ using Toybox.Position;
         Background.exit(gBGServiceHandler.ERROR_BG_EXCEPTION);
       }
     } else {
+      System.println(responseCode);
       Background.exit(responseCode);
     }
   }

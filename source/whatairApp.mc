@@ -15,6 +15,7 @@ var gBGServiceHandler = new BGServiceHandler();
 // background process
 var gInBackground = false;
 var gAirQuality = new AirQuality();
+var gAQIndex = new AQIndex();
 var gDemo = false;
 
 (:background) 
@@ -50,11 +51,9 @@ class whatairApp extends Application.AppBase {
       try {
         System.println("Load usersettings background:" + $.gInBackground);
         
-        // @@ TODO different providers?
         Storage.setValue("openWeatherAPIKey", Utils.getStringProperty("openWeatherAPIKey", ""));
 
         if (gBGServiceHandler == null) {gBGServiceHandler = new BGServiceHandler(); }
-
         gBGServiceHandler.setObservationTimeDelayedMinutes(Utils.getNumberProperty("observationTimeDelayedMinutesThreshold", 10));
         gBGServiceHandler.setMinimalGPSLevel(Utils.getNumberProperty("minimalGPSquality", 3));
         gBGServiceHandler.setUpdateFrequencyInMinutes(Utils.getNumberProperty("updateFrequencyWebReq", 5));
@@ -64,6 +63,15 @@ class whatairApp extends Application.AppBase {
         // Storage.setValue("openWeatherProxyAPIKey",
         //            getStringProperty("openWeatherProxyAPIKey", ""));
               
+        gAQIndex.NO2 = Utils.getNumberProperty("pollutionLimitNO2", gAQIndex.NO2);
+        gAQIndex.PM10 = Utils.getNumberProperty("pollutionLimitPM10", gAQIndex.PM10);
+        gAQIndex.O3 = Utils.getNumberProperty("pollutionLimitO3", gAQIndex.O3);
+        gAQIndex.PM2_5 = Utils.getNumberProperty("pollutionLimitPM2_5", gAQIndex.PM2_5);
+        gAQIndex.SO2 = Utils.getNumberProperty("pollutionLimitSO2", gAQIndex.SO2);
+        gAQIndex.NH3 = Utils.getNumberProperty("pollutionLimitNH3", gAQIndex.NH3);
+        gAQIndex.CO = Utils.getNumberProperty("pollutionLimitCO", gAQIndex.CO);
+        gAQIndex.NO = Utils.getNumberProperty("pollutionLimitNO", gAQIndex.NO);    
+
         $.gDemo = Utils.getBooleanProperty("demo", false); // @@ TODO demo force aqi level
         if ($.gDemo) {
           gBGServiceHandler.stopBGservice(); 

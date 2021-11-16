@@ -8,5 +8,24 @@
     <string id="ObservationTimeDelayedMinutesThreshold">Show warning when request is delayed for x minutes</string>
     
     <string id="MinimalGPSquality">Minimal GPS quality to start BG service</string>
+    <string id="MinimalGPSqualityPrompt">Select minimal GPS quality</string>
+    
+    <string id="GpsQualityNotAvailable">Not available</string>
+    <string id="GpsQualityLastKnown">Last known</string>
+    <string id="GpsQualityPoor">Poor</string>
+    <string id="GpsQualityUsable">Usable</string>
+    <string id="GpsQualityGood">Good</string>
+
+    <string id="PollutionLimits">Pollution limits</string>
+    <string id="PollutionLimitsDescription">Values are in µg/m3, use the 24-hour mean values.</string>
+    <string id="PollutionLimitNO2">Nitrogen dioxide (NO2) µg/m3</string>
+    <string id="PollutionLimitPM10">Particulates (PM10) µg/m3</string>
+    <string id="PollutionLimitO3">Ozone (O3) µg/m3</string>
+    <string id="PollutionLimitPM2_5">Particulates (PM 2.5) µg/m3</string>
+    <string id="PollutionLimitSO2">Sulphur dioxide (SO2) µg/m3</string>
+    <string id="PollutionLimitNH3">Ammonia (NH3) µg/m3</string>
+    <string id="PollutionLimitCO">Carbon monoxide (CO) µg/m3</string>
+    <string id="PollutionLimitNO">Nitrogen monoxide (NO) µg/m3</string>
+
     <string id="Demo">Demo</string>
 </strings>

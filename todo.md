@@ -1,4 +1,10 @@
-init git
+Widget ..
+sync location utils
+- alert / beep
+
+x - set concentration limit using settings
+  - docu etc.
+x - show last known location if no gps on screen
 
 - status
     phone|gps|active|error
@@ -11,23 +17,6 @@ init git
         - distance last obs loc - current loc < x km &&
             last obs time < 1 hour. (@@ UTC check)
     
--> display scheduling remaining time --> over x min..
-@@ handle wifi connected + status   || ble connected == phone connected? -> yes done
-@@ show status
-
-dots on small field
-
-stop background when paused?
-save gps-location when app stopped / pause
-    - in property
-on start check property
-    - distance within < 1km, schedule bg service
-    - else when activity started
-layout large field, airq label position
-    - circle radius dynamic on field height
-    - fonts label/value dynamic ..
-show call counter
-check BlueT connection - stop/restart BG service (also via demo)
 create on watch 
 ? create own LKI score based on https://www.luchtmeetnet.nl/informatie/luchtkwaliteit/klassen-luchtkwaliteit
 

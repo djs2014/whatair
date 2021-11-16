@@ -4,6 +4,7 @@ import Toybox.Lang;
 import Toybox.WatchUi;
 using WhatAppBase.Utils;
 using WhatAppBase.Types;
+using Toybox.Application.Storage;
 
 class whatairView extends WatchUi.DataField {
 
@@ -18,6 +19,7 @@ class whatairView extends WatchUi.DataField {
         DataField.initialize();
         mLabel = Application.loadResource(Rez.Strings.Label) as Lang.String;
         gBGServiceHandler.setCurrentLocation(mCurrentLocation);
+        // gBGServiceHandler.setOnBeforeWebrequest(self, :onBeforeBGSchedule);
     }
 
     function onLayout(dc as Dc) as Void {
@@ -28,10 +30,21 @@ class whatairView extends WatchUi.DataField {
         mCurrentLocation.onCompute(info);
         mCurrentLocation.infoLocation();
 
+      
         gBGServiceHandler.onCompute(info);
-        gBGServiceHandler.autoScheduleService(); 
+        gBGServiceHandler.autoScheduleService();         
     }
     
+    // function onBeforeBGSchedule() {
+    //     System.println("onBeforeBGSchedule");
+    //     var location = mCurrentLocation.getLocation();
+    //     if (location != null) {
+    //       Storage.setValue("currentDegrees", location.toDegrees());
+    //     else {
+    //       Storage.deleteValue("currentDegrees");                  
+    //     }
+    // }
+
     function onUpdate(dc as Dc) as Void {
         renderAirQuality(dc, $.gAirQuality);
     }
@@ -82,11 +95,8 @@ class whatairView extends WatchUi.DataField {
     // observation time @@ UTC ..??
     var color = mColor;
     var obsTime = Utils.getShortTimeString(airQuality.observationTime);
-    if (mFieldType == Types.SmallField) {
-      obsTime = "";
-    }
-    // if (Utils.isDelayedFor(airQuality.observationTime,    
-    //                        $.gObservationTimeDelayedMinutesThreshold)) {
+    if (mFieldType == Types.SmallField) { obsTime = ""; }
+    
     if (gBGServiceHandler.isDataDelayed()){
       dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
       if (mFieldType == Types.SmallField) {
@@ -102,6 +112,8 @@ class whatairView extends WatchUi.DataField {
       dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2, Graphics.FONT_MEDIUM,
                   mLabel + " " + airQuality.airQuality(),
                   Graphics.TEXT_JUSTIFY_CENTER| Graphics.TEXT_JUSTIFY_VCENTER);
+      var margin = (dc.getWidth() - (8 * 10)) / 8;
+      drawStats(dc, airQuality, 6, dc.getHeight() - 10, 5, null, null, margin, false);                    
       return;
     }
     
@@ -113,14 +125,7 @@ class whatairView extends WatchUi.DataField {
     if (mFieldType == Types.LargeField || mFieldType == Types.OneField) {
       renderAirQualityStats_LargeField(dc, airQuality);
       return;
-    }
-
-    // Stats @@todo NULL CHECK ==> "--"
-    
-    // https://openweathermap.org/api/air-pollution
-    // https://en.wikipedia.org/wiki/Air_quality_index#CAQI
-    // https://www.infomil.nl/onderwerpen/lucht-water/luchtkwaliteit/regelgeving/wet-milieubeheer/beoordelen/grenswaarden/
-    
+    }    
   }
 
   function renderAirQualityStats_WideField(dc, airQuality) {
@@ -136,53 +141,22 @@ class whatairView extends WatchUi.DataField {
         dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
         dc.drawText(1 + wCounter + 1, 2 * hfInfo + 1, Graphics.FONT_TINY, next, Graphics.TEXT_JUSTIFY_LEFT);
     }
-    // Longest text                  
+    // Longest text @@
     var textWidth = dc.getTextWidthInPixels(airQuality.aqiName[5], Graphics.FONT_MEDIUM) + 2;
-    var radius = (dc.getWidth() - textWidth) / 16;
-    var showValue = false;
-
+    var radius = (dc.getWidth() - textWidth) / 16;    
     var x = textWidth + radius;
     var y = hfInfo + radius;
-
-    var no2 = airQuality.no2;
-    var pm10 = airQuality.pm10;
-    var o3 = airQuality.o3;
-    var pm2_5 = airQuality.pm2_5;
-
-    var so2 = airQuality.so2;
-    var nh3 = airQuality.nh3;
-    var co = airQuality.co;
-    var no = airQuality.no;
-
     var marginLeft = 1;
     var marginRight = 1;
     var margin = (dc.getWidth() - textWidth - (10 * radius) - 2) / 3; // 8 * radius
 
     // Clear background for the stats
     dc.setColor(mBackgroundColor, Graphics.COLOR_TRANSPARENT);
-    dc.fillRectangle(textWidth, hfInfo, dc.getWidth() - textWidth, dc.getHeight() - hfInfo);
+    dc.fillRectangle(textWidth - 1, hfInfo - 1, dc.getWidth() - textWidth + 1, dc.getHeight() - hfInfo + 1);
 
-      // @@DRY
     var fontLabel = Graphics.FONT_TINY;  
-    // x,y is center 
-    drawCell(dc, x, y, radius, "NO2", no2, 100, showValue, fontLabel);  // microgr per m3 @@ TODO min values in object/settings?
-    x = x + margin + 2 * radius;
-    drawCell(dc, x, y, radius, "PM10", pm10, 50, showValue, fontLabel);
-    x = x + margin + 2 * radius;
-    drawCell(dc, x, y, radius, "O3", o3, 120, showValue, fontLabel);
-    x = x + margin + 2 * radius;
-    drawCell(dc, x, y, radius, "PM2.5", pm2_5, 30, showValue, fontLabel);
-    // https://www.ser.nl/nl/thema/arbeidsomstandigheden/Grenswaarden-gevaarlijke-stoffen/Grenswaarden/Ozon
-    x = textWidth + 1 + radius;
-    y = y + 1 + 2 * radius;
-    drawCell(dc, x, y, radius, "SO2", so2, 700, showValue, fontLabel);
-    x = x + margin + 2 * radius;
-    drawCell(dc, x, y, radius, "NH3", nh3, 14000, showValue, fontLabel);
-    x = x + margin + 2 * radius;
-    drawCell(dc, x, y, radius, "CO", co, 23000, showValue, fontLabel);
-    x = x + margin + 2 * radius;
-    drawCell(dc, x, y, radius, "NO", no, 2500, showValue, fontLabel);
-    x = x + margin + 2 * radius;  
+    var fontValue = null;
+    drawStats(dc, airQuality, x, y, radius, fontLabel, fontValue, margin, true);    
   }
 
   function renderAirQualityStats_LargeField(dc, airQuality) {
@@ -200,22 +174,10 @@ class whatairView extends WatchUi.DataField {
         dc.drawText(dc.getWidth()- 1 - wCounter - 1, hfl, Graphics.FONT_TINY, next, Graphics.TEXT_JUSTIFY_RIGHT);
     }
 
-    var showValue = true;
-    var radius = Utils.min(dc.getFontHeight(Graphics.FONT_MEDIUM), (dc.getHeight() - 2 * hfl) / 4);
-
     var hfInfo = 1 + (2 * hfl);
+    var radius = Utils.min(dc.getFontHeight(Graphics.FONT_MEDIUM), (dc.getHeight() - 2 * hfl) / 4);
     var x = 1 + radius;
     var y = hfInfo + radius;
-
-    var no2 = airQuality.no2;
-    var pm10 = airQuality.pm10;
-    var o3 = airQuality.o3;
-    var pm2_5 = airQuality.pm2_5;
-
-    var so2 = airQuality.so2;
-    var nh3 = airQuality.nh3;
-    var co = airQuality.co;
-    var no = airQuality.no;
     
     var marginLeft = 3;
     var marginRight = 3;
@@ -226,54 +188,79 @@ class whatairView extends WatchUi.DataField {
     dc.setColor(mBackgroundColor, Graphics.COLOR_TRANSPARENT);
     dc.fillRectangle(textWidth, hfInfo, dc.getWidth() - textWidth, dc.getHeight() - hfInfo);
 
-    // https://openweathermap.org/api/air-pollution
-    // https://en.wikipedia.org/wiki/Air_quality_index#CAQI
-    // https://www.infomil.nl/onderwerpen/lucht-water/luchtkwaliteit/regelgeving/wet-milieubeheer/beoordelen/grenswaarden/
     var fontLabel = Graphics.FONT_MEDIUM;
-    drawCell(dc, x, y, radius, "NO2", no2, 100, showValue, fontLabel);  // microgr per m3
-    x = x + margin + 2 * radius;
-    drawCell(dc, x, y, radius, "PM10", pm10, 50, showValue, fontLabel);
-    x = x + margin + 2 * radius;
-    drawCell(dc, x, y, radius, "O3", o3, 120, showValue, fontLabel);
-    x = x + margin + 2 * radius;
-    drawCell(dc, x, y, radius, "PM2.5", pm2_5, 30, showValue, fontLabel);
-    // https://www.ser.nl/nl/thema/arbeidsomstandigheden/Grenswaarden-gevaarlijke-stoffen/Grenswaarden/Ozon
-    x = 1 + radius;
-    y = y + 1 + 2 * radius;
-    drawCell(dc, x, y, radius, "SO2", so2, 700, showValue, fontLabel);
-    x = x + margin + 2 * radius;
-    drawCell(dc, x, y, radius, "NH3", nh3, 14000, showValue, fontLabel);
-    x = x + margin + 2 * radius;
-    drawCell(dc, x, y, radius, "CO", co, 23000, showValue, fontLabel);
-    x = x + margin + 2 * radius;
-    drawCell(dc, x, y, radius, "NO", no, 2500, showValue, fontLabel);
-    x = x + margin + 2 * radius;    
+    var fontValue = Graphics.FONT_SMALL;
+    drawStats(dc, airQuality, x, y, radius, fontLabel, fontValue, margin, true);    
   }
 
-  function drawCell(dc, x, y, radius, label, value, max, showValue, fontLabel) {
-    var perc = Utils.percentageOf(value, max);
-    // System.println("cell: " + label + " value: " + value + " perc: " + perc);
+  // x,y center of circle
+  function drawStats(dc, airQuality, x, y, radius, fontLabel, fontValue, margin, newline) {
+    var no2 = airQuality.no2;
+    var pm10 = airQuality.pm10;
+    var o3 = airQuality.o3;
+    var pm2_5 = airQuality.pm2_5;
 
+    var so2 = airQuality.so2;
+    var nh3 = airQuality.nh3;
+    var co = airQuality.co;
+    var no = airQuality.no;
+
+    var startX = x;
+    drawCell(dc, x, y, radius, "NO2", no2, gAQIndex.NO2, fontLabel, fontValue);
+    x = x + margin + 2 * radius;
+    drawCell(dc, x, y, radius, "PM10", pm10, gAQIndex.PM10, fontLabel, fontValue);
+    x = x + margin + 2 * radius;
+    drawCell(dc, x, y, radius, "O3", o3, gAQIndex.O3, fontLabel, fontValue);
+    x = x + margin + 2 * radius;
+    drawCell(dc, x, y, radius, "PM2.5", pm2_5, gAQIndex.PM2_5, fontLabel, fontValue);
+    // new line
+    if (newline) {
+      x = startX; // radius already included
+      y = y + 1 + 2 * radius;
+    } else {
+      x = x + margin + 2 * radius;
+    }    
+    drawCell(dc, x, y, radius, "SO2", so2, gAQIndex.SO2, fontLabel, fontValue);
+    x = x + margin + 2 * radius;
+    drawCell(dc, x, y, radius, "NH3", nh3, gAQIndex.NH3, fontLabel, fontValue);
+    x = x + margin + 2 * radius;
+    drawCell(dc, x, y, radius, "CO", co, gAQIndex.CO, fontLabel, fontValue);
+    x = x + margin + 2 * radius;
+    drawCell(dc, x, y, radius, "NO", no, gAQIndex.NO, fontLabel, fontValue);
+
+  }
+
+  function drawCell(dc, x, y, radius, label, value, max, fontLabel, fontValue) {
+    var perc = Utils.percentageOf(value, max);
     var color = Utils.percentageToColor(perc);
+    
     dc.setColor(color, Graphics.COLOR_TRANSPARENT);
     Utils.fillPercentageCircle(dc, x, y, radius, perc);
+
     dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
     dc.drawCircle(x, y, radius);
+    
+    var labelHeight = 0;
+    // var valueHeight = 0;    
+    // if (fontValue != null) {
+    //   valueHeight = dc.getFontHeight(fontValue);
+      
+    // }
+    if (fontLabel != null) {
+      labelHeight = dc.getFontHeight(fontLabel);
+      var yLabel = y;
+      if (fontValue != null) { yLabel = yLabel - labelHeight / 3; }
+      dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+      dc.drawText(x, yLabel , fontLabel, label, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+    }
 
-    //var fontLabel = Graphics.FONT_MEDIUM;
-    var flh = dc.getFontHeight(fontLabel);
-    dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
-    dc.drawText(x, y - flh / 3, fontLabel, label,
-                Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-
-    if (showValue) {
+    if (fontValue != null) {
       var text = "--";
       if (value != null) {
         text = value.format("%0.2f");
       } 
       dc.setColor(mColor, Graphics.COLOR_TRANSPARENT);
-      dc.drawText(x, y + flh / 3, Graphics.FONT_SMALL, text,
-                  Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+      dc.drawText(x, y + labelHeight / 3, fontValue, text, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
   }
 
