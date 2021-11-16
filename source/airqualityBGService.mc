@@ -12,17 +12,22 @@ class AirQualityBGService extends Toybox.System.ServiceDelegate {
   
   function initialize() {
     System.ServiceDelegate.initialize();
-    System.println("Initialize airquality background service");
+    System.println("AirQualityBGService Initialize");
   }
 
   function onTemporalEvent() {
-    System.println("onTemporalEvent");
+    System.println("AirQualityBGService onTemporalEvent");
 
-    var location = null;
-    var positionInfo = Position.getInfo();
-    if (positionInfo has : position && positionInfo.position != null) {
-      location = positionInfo.position.toDegrees();
-      System.println("onTemporalEvent location: " + location);
+    var degrees = Storage.getValue("lastKnownDegrees");
+    if (degrees != null) {
+      System.println("AirQualityBGService lastKnownDegrees: " + degrees);
+      Storage.deleteValue("lastKnownDegrees");
+    } else {
+      var positionInfo = Position.getInfo();
+      if (positionInfo has : position && positionInfo.position != null) {
+        degrees = positionInfo.position.toDegrees();
+        System.println("AirQualityBGService location: " + degrees);
+      }
     }
 
     var apiKey = Storage.getValue("openWeatherAPIKey");
@@ -32,10 +37,10 @@ class AirQualityBGService extends Toybox.System.ServiceDelegate {
       proxyApiKey = "";
     }
 
-    if (location == null || apiKey == null || apiKey.length() == 0) {
-      System.println(Lang.format("proxyurl[$1$] location [$2$] apiKey[$3$]",
-                                 [ proxy, location, apiKey ]));
-      if (location == null) {
+    if (degrees == null || apiKey == null || apiKey.length() == 0) {
+      System.println(Lang.format("AirQualityBGService proxyurl[$1$] location [$2$] apiKey[$3$]",
+                                 [ proxy, degrees, apiKey ]));
+      if (degrees == null) {
         Background.exit(ERROR_BG_NO_POSITION);
         return;
       }
@@ -45,8 +50,8 @@ class AirQualityBGService extends Toybox.System.ServiceDelegate {
       }    
     }
     
-    var lat = location[0];
-    var lon = location[1];
+    var lat = degrees[0];
+    var lon = degrees[1];
     requestWeatherData(lat, lon, apiKey, proxy, proxyApiKey);
   }
 
@@ -61,7 +66,7 @@ class AirQualityBGService extends Toybox.System.ServiceDelegate {
       url = Lang.format("$1$?lat=$2$&lon=$3$&appid=$4$",
                         [ base, lat, lon, apiKey ]);
     }
-    System.println("requestWeatherData url[" + url + "]");
+    System.println("AirQualityBGService requestWeatherData url[" + url + "]");
 
     var options = {
             :method => Communications.HTTP_REQUEST_METHOD_GET,

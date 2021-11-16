@@ -1,11 +1,10 @@
 Widget ..
-
+sync location utils
 - set concentration limit using settings
   - docu etc.
  - show last known location if no gps on screen
 - refactor draw stats code
 - alert / beep
-
 
 - status
     phone|gps|active|error

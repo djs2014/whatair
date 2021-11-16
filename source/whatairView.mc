@@ -4,6 +4,7 @@ import Toybox.Lang;
 import Toybox.WatchUi;
 using WhatAppBase.Utils;
 using WhatAppBase.Types;
+using Toybox.Application.Storage;
 
 class whatairView extends WatchUi.DataField {
 
@@ -18,6 +19,7 @@ class whatairView extends WatchUi.DataField {
         DataField.initialize();
         mLabel = Application.loadResource(Rez.Strings.Label) as Lang.String;
         gBGServiceHandler.setCurrentLocation(mCurrentLocation);
+        // gBGServiceHandler.setOnBeforeWebrequest(self, :onBeforeBGSchedule);
     }
 
     function onLayout(dc as Dc) as Void {
@@ -28,10 +30,21 @@ class whatairView extends WatchUi.DataField {
         mCurrentLocation.onCompute(info);
         mCurrentLocation.infoLocation();
 
+      
         gBGServiceHandler.onCompute(info);
-        gBGServiceHandler.autoScheduleService(); 
+        gBGServiceHandler.autoScheduleService();         
     }
     
+    // function onBeforeBGSchedule() {
+    //     System.println("onBeforeBGSchedule");
+    //     var location = mCurrentLocation.getLocation();
+    //     if (location != null) {
+    //       Storage.setValue("currentDegrees", location.toDegrees());
+    //     else {
+    //       Storage.deleteValue("currentDegrees");                  
+    //     }
+    // }
+
     function onUpdate(dc as Dc) as Void {
         renderAirQuality(dc, $.gAirQuality);
     }

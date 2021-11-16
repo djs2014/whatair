@@ -1,6 +1,7 @@
 import Toybox.Lang;
 import Toybox.System;
 import Toybox.Activity;
+import Toybox.Position;
 using Toybox.Time;
 using Toybox.Background;
 using WhatAppBase.Utils;
@@ -24,8 +25,7 @@ class BGServiceHandler {
     var mCurrentLocation = null;
     var mError = 0; 
     var mHttpStatus = HTTP_OK;
-    var mPhoneConnected = false;
-    var mGPSlevel = 0;
+    var mPhoneConnected = false;    
     var mBGActive = false;
     var mBGDisabled = false;
 
@@ -37,6 +37,8 @@ class BGServiceHandler {
     var mLastRequestMoment = null; 
     var mLastObservationMoment = null; 
     var mData = null;
+
+    // var methodOnBeforeWebrequest = null;
 
     function initialize() {}
     function setCurrentLocation(currentLocation as Utils.CurrentLocation) {
@@ -58,12 +60,7 @@ class BGServiceHandler {
         mHttpStatus = HTTP_OK;
     }
     function onCompute(info as Activity.Info) {
-        mPhoneConnected = System.getDeviceSettings().phoneConnected;
-        mGPSlevel = 0;    
-        if (info != null && info has :currentLocationAccuracy 
-            && info.currentLocationAccuracy  != null) {
-            mGPSlevel = info.currentLocationAccuracy;     
-        }              
+        mPhoneConnected = System.getDeviceSettings().phoneConnected;        
     }
 
     function autoScheduleService() {
@@ -95,11 +92,11 @@ class BGServiceHandler {
         if (mError == ERROR_BG_GPS_LEVEL || mError == ERROR_BG_NO_PHONE || mError == ERROR_BG_NO_POSITION ) {
             mError = ERROR_BG_NONE;
         }
-
-        if (mGPSlevel < mMinimalGPSLevel) { 
-            mError = ERROR_BG_GPS_LEVEL;                
-        } else if (!mPhoneConnected)     {
+        
+        if (!mPhoneConnected) {
             mError = ERROR_BG_NO_PHONE;            
+        } else if (mCurrentLocation != null && mCurrentLocation.getAccuracy() < mMinimalGPSLevel) { 
+            mError = ERROR_BG_GPS_LEVEL;                
         } else if (mCurrentLocation != null && !mCurrentLocation.hasLocation()) {
             mError = ERROR_BG_NO_POSITION;                
         }
@@ -159,6 +156,19 @@ class BGServiceHandler {
         var secondsToNext = (mUpdateFrequencyInMinutes * 60) - elapsedSeconds;
         return Utils.secondsToShortTimeString(secondsToNext, "{m}:{s}");
     }
+
+    // function setOnBeforeWebrequest(obj, callback) {
+    //     if (callback == null) { 
+    //         methodOnBeforeWebrequest = null;
+    //         return;
+    //     }
+    //     methodOnBeforeWebrequest = new Lang.Method(obj, callback);
+    // }
+
+    // function onBeforeWebrequest() {
+    //     if (methodOnBeforeWebrequest==null) { return; }
+    //     methodOnBeforeWebrequest.invoke(self);
+    // }
 
     function onBackgroundData(data, obj, cbProcessData) {                
         mLastRequestMoment = Time.now();
