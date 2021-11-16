@@ -95,11 +95,8 @@ class whatairView extends WatchUi.DataField {
     // observation time @@ UTC ..??
     var color = mColor;
     var obsTime = Utils.getShortTimeString(airQuality.observationTime);
-    if (mFieldType == Types.SmallField) {
-      obsTime = "";
-    }
-    // if (Utils.isDelayedFor(airQuality.observationTime,    
-    //                        $.gObservationTimeDelayedMinutesThreshold)) {
+    if (mFieldType == Types.SmallField) { obsTime = ""; }
+    
     if (gBGServiceHandler.isDataDelayed()){
       dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
       if (mFieldType == Types.SmallField) {
@@ -155,7 +152,7 @@ class whatairView extends WatchUi.DataField {
 
     // Clear background for the stats
     dc.setColor(mBackgroundColor, Graphics.COLOR_TRANSPARENT);
-    dc.fillRectangle(textWidth, hfInfo, dc.getWidth() - textWidth, dc.getHeight() - hfInfo);
+    dc.fillRectangle(textWidth - 1, hfInfo - 1, dc.getWidth() - textWidth + 1, dc.getHeight() - hfInfo + 1);
 
     var fontLabel = Graphics.FONT_TINY;  
     var fontValue = null;

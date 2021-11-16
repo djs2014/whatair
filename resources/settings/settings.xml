@@ -29,6 +29,42 @@
         </settingConfig>
     </setting>      
 
+    <!-- <setting propertyKey="@Properties.pollutionLimits" title="@Strings.PollutionLimits">
+        <settingConfig type="boolean" />
+    </setting> -->
+
+    <!-- <group id="pollutionLimitsInfo" 
+        title="@Strings.PollutionLimits" 
+        description="@Strings.PollutionLimitsDescription" 
+        enableIfTrue="@Properties.pollutionLimits"> -->
+        
+		<setting propertyKey="@Properties.pollutionLimitNO2" title="@Strings.PollutionLimitNO2">
+            <settingConfig type="numeric" min="0"/>
+        </setting>
+        <setting propertyKey="@Properties.pollutionLimitPM10" title="@Strings.PollutionLimitPM10">
+            <settingConfig type="numeric" min="0"/>
+        </setting>
+        <setting propertyKey="@Properties.pollutionLimitO3" title="@Strings.PollutionLimitO3">
+            <settingConfig type="numeric" min="0"/>
+        </setting>
+        <setting propertyKey="@Properties.pollutionLimitPM2_5" title="@Strings.PollutionLimitPM2_5">
+            <settingConfig type="numeric" min="0"/>
+        </setting>
+        <setting propertyKey="@Properties.pollutionLimitSO2" title="@Strings.PollutionLimitSO2">
+            <settingConfig type="numeric" min="0"/>
+        </setting>
+        <setting propertyKey="@Properties.pollutionLimitNH3" title="@Strings.PollutionLimitNH3">
+            <settingConfig type="numeric" min="0"/>
+        </setting>
+        <setting propertyKey="@Properties.pollutionLimitCO" title="@Strings.PollutionLimitCO">
+            <settingConfig type="numeric" min="0"/>
+        </setting>
+        <setting propertyKey="@Properties.pollutionLimitNO" title="@Strings.PollutionLimitNO">
+            <settingConfig type="numeric" min="0"/>
+        </setting>
+
+    <!-- </group> -->
+
 	<setting propertyKey="@Properties.demo" title="@Strings.Demo">
 		<settingConfig type="boolean" />
 	</setting> 	

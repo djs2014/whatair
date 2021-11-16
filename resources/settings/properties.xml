@@ -12,5 +12,16 @@
 	<property id="openWeatherProxy" type="string"></property>
 	<property id="openWeatherProxyAPIKey" type="string"></property>
 
+	<property id="pollutionLimits" type="boolean">false</property>	
+	
+	<property id="pollutionLimitNO2" type="number">25</property>	
+	<property id="pollutionLimitPM10" type="number">45</property>	
+	<property id="pollutionLimitO3" type="number">100</property>	
+	<property id="pollutionLimitPM2_5" type="number">15</property>	
+	<property id="pollutionLimitSO2" type="number">40</property>	
+	<property id="pollutionLimitNH3" type="number">14000</property>	
+	<property id="pollutionLimitCO" type="number">7</property>	
+	<property id="pollutionLimitNO" type="number">2500</property>	
+
 	<property id="demo" type="boolean">false</property>	
 </properties>
