@@ -3,7 +3,8 @@ import Toybox.System;
 using Toybox.Time;
 using WhatAppBase.Colors;
 
-( : background) class AirQuality {
+(:background) 
+class AirQuality {
   var lat = 0.0f;
   var lon = 0.0f;
   // Carbon monoxide (CO), Nitrogen monoxide (NO), Nitrogen dioxide (NO2), Ozone
@@ -27,8 +28,7 @@ using WhatAppBase.Colors;
   // Poor 	4 	200-400 	90-180 	180-240 	55-110
   // Very Poor 	5 	>400 	>180 	>240 	>110
   var aqi = 0;
-  var aqiName = [ "--", "Good", "Fair", "Moderate", "Poor",
-                  "Very poor" ] as Lang.Array<Lang.String>;
+  var aqiName = [ "--", "Good", "Fair", "Moderate", "Poor", "Very poor" ] as Lang.Array<Lang.String>;
   var observationTime = null;
 
   function initialize() {}

@@ -15,6 +15,7 @@ var gBGServiceHandler = new BGServiceHandler();
 // background process
 var gInBackground = false;
 var gAirQuality = new AirQuality();
+var gAQIndex = new AQIndex();
 var gDemo = false;
 
 (:background) 

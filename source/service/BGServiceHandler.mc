@@ -149,7 +149,7 @@ class BGServiceHandler {
     }
 
     function getWhenNextRequest() {
-        if (hasError()) { return null; }
+        if (hasError() || mBGDisabled || !mBGActive) { return null; }
         var lastTime = Background.getLastTemporalEventTime();
         if (lastTime == null) { return null; }
         var elapsedSeconds = Time.now().value() - lastTime.value();

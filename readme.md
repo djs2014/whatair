@@ -32,3 +32,11 @@ Errors:
 - Http[XXX]: Http status code. Example 401 is Not authorized. Then the api key is not valid.
 
 Save settings will reset the error state (if not automatically).
+
+
+### Info
+
+https://openweathermap.org/api/air-pollution
+https://en.wikipedia.org/wiki/Air_quality_index#CAQI
+https://www.infomil.nl/onderwerpen/lucht-water/luchtkwaliteit/regelgeving/wet-milieubeheer/beoordelen/grenswaarden/
+https://www.ser.nl/nl/thema/arbeidsomstandigheden/Grenswaarden-gevaarlijke-stoffen/Grenswaarden/Ozon    
