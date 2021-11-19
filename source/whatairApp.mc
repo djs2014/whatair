@@ -37,6 +37,13 @@ class whatairApp extends Application.AppBase {
       return [new AirQualityBGService()] as Lang.Array<System.ServiceDelegate>;
     }
 
+    function getBGServiceHandler() as BGServiceHandler {
+      if (mBGServiceHandler == null) {
+        mBGServiceHandler = new BGServiceHandler();
+      }
+      return mBGServiceHandler;
+    }
+
     function loadUserSettings() as Void {
       try {
         System.println("Load usersettings");
@@ -45,10 +52,11 @@ class whatairApp extends Application.AppBase {
 
         if ($.gAQIndex == null) {$.gAQIndex = new AQIndex(); }
         if (mAirQuality == null) {mAirQuality = new AirQuality(); }
-        if (mBGServiceHandler == null) {mBGServiceHandler = new BGServiceHandler(); }
-        mBGServiceHandler.setObservationTimeDelayedMinutes(Utils.getNumberProperty("observationTimeDelayedMinutesThreshold", 10));
-        mBGServiceHandler.setMinimalGPSLevel(Utils.getNumberProperty("minimalGPSquality", 3));
-        mBGServiceHandler.setUpdateFrequencyInMinutes(Utils.getNumberProperty("updateFrequencyWebReq", 5));
+        var handler =  getBGServiceHandler();
+        // if (mBGServiceHandler == null) {mBGServiceHandler = new BGServiceHandler(); }
+        handler.setObservationTimeDelayedMinutes(Utils.getNumberProperty("observationTimeDelayedMinutesThreshold", 10));
+        handler.setMinimalGPSLevel(Utils.getNumberProperty("minimalGPSquality", 3));
+        handler.setUpdateFrequencyInMinutes(Utils.getNumberProperty("updateFrequencyWebReq", 5));
         
         // Storage.setValue("openWeatherProxy",
         //            getStringProperty("openWeatherProxy", ""));
@@ -67,12 +75,12 @@ class whatairApp extends Application.AppBase {
         // @@ TODO demo force aqi level
         var demo = Utils.getBooleanProperty("demo", false) as Boolean; 
         if (demo) {
-          mBGServiceHandler.stopBGservice(); 
-          mBGServiceHandler.Disable();                    
+          handler.stopBGservice(); 
+          handler.Disable();                    
           setDemoData();          
         } else {
           restoreData();
-          mBGServiceHandler.Enable();          
+          handler.Enable();          
         }
 
         System.println("loadUserSettings loaded");
@@ -82,7 +90,7 @@ class whatairApp extends Application.AppBase {
     }
 
     function setBackgroundUpdate(minutes as Number) as Void {
-      if (Toybox.System has : ServiceDelegate) {
+      if (Toybox.System has :ServiceDelegate) {
         System.println("setBackgroundUpdate registerForTemporalEvent " + minutes + " minutes");
         Background.registerForTemporalEvent(new Time.Duration(minutes * 60));
       } else {
@@ -94,10 +102,10 @@ class whatairApp extends Application.AppBase {
     // called in foreground
     function onBackgroundData(data as PersistableType) {
       System.println("Background data recieved");
-      if (mBGServiceHandler == null) {mBGServiceHandler = new BGServiceHandler(); }
-      mBGServiceHandler.onBackgroundData(data, mAirQuality, :updateData);
-      // mBGServiceHandler.setLastObservationMoment(mAirQuality.observationTime);      
-
+      var handler = getBGServiceHandler();
+      // if (mBGServiceHandler == null) {mBGServiceHandler = new BGServiceHandler(); }
+      handler.onBackgroundData(data, mAirQuality, :updateData);
+      
       // WatchUi.requestUpdate();
     }
 

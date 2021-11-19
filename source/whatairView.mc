@@ -10,6 +10,7 @@ class whatairView extends WatchUi.DataField {
 
     var mNightMode as Boolean = false;
     var mColor as ColorType = Graphics.COLOR_WHITE;
+    var mColorValues as ColorType = Graphics.COLOR_WHITE;
     var mBackgroundColor as ColorType = Graphics.COLOR_BLACK;
     var mLabel as String = "";
     var mFieldType as Types.FieldType = Types.WideField;
@@ -21,9 +22,16 @@ class whatairView extends WatchUi.DataField {
         DataField.initialize();
         mLabel = Application.loadResource(Rez.Strings.Label) as Lang.String;
 
-        mBGServiceHandler = getApp().mBGServiceHandler;
-        mBGServiceHandler.setCurrentLocation(mCurrentLocation);        
+        var handler = getBGServiceHandler();
+        handler.setCurrentLocation(mCurrentLocation);        
         mAirQuality = getApp().mAirQuality;
+    }
+
+    hidden function getBGServiceHandler() as BGServiceHandler {
+      if (mBGServiceHandler == null) {
+        mBGServiceHandler = getApp().getBGServiceHandler();
+      }
+      return mBGServiceHandler;
     }
 
     function onLayout(dc as Dc) as Void {
@@ -34,8 +42,9 @@ class whatairView extends WatchUi.DataField {
         mCurrentLocation.onCompute(info);
         mCurrentLocation.infoLocation();
 
-        mBGServiceHandler.onCompute(info);
-        mBGServiceHandler.autoScheduleService();         
+        var handler = getBGServiceHandler();
+        handler.onCompute(info);
+        handler.autoScheduleService();         
     }
       
     function onUpdate(dc as Dc) as Void {
@@ -60,13 +69,15 @@ class whatairView extends WatchUi.DataField {
       dc.fillRectangle(0, 0, dc.getWidth(), dc.getHeight());
     }
 
-    if (mNightMode && airQualityColor == null) {
+    if (mNightMode) {      
       mColor = Graphics.COLOR_WHITE;
-      dc.setColor(mColor, Graphics.COLOR_TRANSPARENT);
+      mColorValues = Graphics.COLOR_WHITE;      
     } else {
       mColor = Graphics.COLOR_BLACK;
-      dc.setColor(mColor, Graphics.COLOR_TRANSPARENT);
+      mColorValues = Graphics.COLOR_BLACK;
     }
+    if (airQualityColor != null) { mColor = Graphics.COLOR_BLACK; } 
+    dc.setColor(mColor, Graphics.COLOR_TRANSPARENT);
 
     // observation position
     var obsPosition = mCurrentLocation.getRelativeToObservation(airQuality.lat, airQuality.lon);    
@@ -77,7 +88,7 @@ class whatairView extends WatchUi.DataField {
     if (obsPosition != null && obsPosition.length() > 0) {
        x = dc.getTextWidthInPixels(obsPosition, Graphics.FONT_SMALL) + 2;
     }
-    var handler = mBGServiceHandler;
+    var handler = getBGServiceHandler();
     if (handler.hasError()) {
       status = handler.getError();
     } else {
@@ -125,9 +136,11 @@ class whatairView extends WatchUi.DataField {
     var hfInfo = dc.getFontHeight(Graphics.FONT_SMALL);
     dc.drawText(1, hfInfo + 1, Graphics.FONT_MEDIUM, airQuality.airQuality(),
                   Graphics.TEXT_JUSTIFY_LEFT);
-    var counter = "#" + mBGServiceHandler.getCounterStats();
+    // @@DRY
+    var handler = getBGServiceHandler();                  
+    var counter = "#" + handler.getCounterStats();
     dc.drawText(1, 2 * hfInfo + 1, Graphics.FONT_SMALL, counter, Graphics.TEXT_JUSTIFY_LEFT);
-    var next = mBGServiceHandler.getWhenNextRequest();
+    var next = handler.getWhenNextRequest();
     if (next != null) {
         var wCounter = dc.getTextWidthInPixels(counter, Graphics.FONT_SMALL);
         next = "(" + next + ")";
@@ -158,9 +171,11 @@ class whatairView extends WatchUi.DataField {
     var hfl = dc.getFontHeight(Graphics.FONT_SMALL);
     dc.drawText(1, hfl, Graphics.FONT_SMALL,
                   mLabel + " " + airQuality.airQuality(), Graphics.TEXT_JUSTIFY_LEFT);
-    var counter = "#" + mBGServiceHandler.getCounterStats();
+    // @@DRY
+    var handler = getBGServiceHandler();  
+    var counter = "#" + handler.getCounterStats();
     dc.drawText(dc.getWidth()-1, hfl, Graphics.FONT_SMALL, counter, Graphics.TEXT_JUSTIFY_RIGHT);                  
-    var next = mBGServiceHandler.getWhenNextRequest();
+    var next = handler.getWhenNextRequest();
     if (next != null) {
         var wCounter = dc.getTextWidthInPixels(counter, Graphics.FONT_SMALL);
         next = "(" + next + ")";
@@ -256,7 +271,7 @@ class whatairView extends WatchUi.DataField {
       if (value != null) {
         text = value.format("%0.2f");
       } 
-      dc.setColor(mColor, Graphics.COLOR_TRANSPARENT);
+      dc.setColor(mColorValues, Graphics.COLOR_TRANSPARENT);
       dc.drawText(x, y + labelHeight / 3, fontValue, text, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
   }
