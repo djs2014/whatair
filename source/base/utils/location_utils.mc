@@ -3,35 +3,48 @@ import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.System;
 import Toybox.Position;
+
 module WhatAppBase {
   (:Utils) 
   module Utils {
     class CurrentLocation {
-      hidden var mLocation = null as Position.Location?; 
-      hidden var mAccuracy = Position.QUALITY_NOT_AVAILABLE as Position.Quality;
+      hidden var mLocation as Location?; 
+      hidden var mAccuracy as Quality? = Position.QUALITY_NOT_AVAILABLE;
 
       function initialize() {}
 
-      function hasLocation() { return mLocation != null; } //&& self.lat != 0 && self.lon != 0; }
+      function hasLocation() as Boolean { 
+        if ( mLocation == null) { return false; }
+        var currentLocation = mLocation as Location;
+        var degrees = currentLocation.toDegrees();
+        return degrees[0] != 0.0 && degrees[1] != 0.0;
+      } 
 
-      function infoLocation() {
+      function infoLocation() as String {
         if (!hasLocation()) { return "No location"; }
-        return "Current location: " + mLocation.toDegrees();
+        var currentLocation = mLocation as Location;
+        var degrees = currentLocation.toDegrees();
+        var latCurrent = degrees[0];
+        var lonCurrent = degrees[1];
+        return "Current location: [" + latCurrent.format("%04d") + "," + lonCurrent.format("%04d") + "]";
       }
 
-      function getAccuracy() as Position.Quality {
+      function getAccuracy() as Quality {
+        if (mAccuracy == null) { return Position.QUALITY_NOT_AVAILABLE; }
         return mAccuracy;
       }
-      function getLocation() as Position.Location? {
+      
+      function getLocation() as Location? {
         return mLocation;
       }
-      function onCompute(info as Activity.Info) {
+
+      function onCompute(info as Activity.Info) as Void {
         try {
           var location = null;
           mAccuracy = Position.QUALITY_NOT_AVAILABLE;
           if (info != null) {
             if (info has :currentLocation && info.currentLocation != null) {
-              location = info.currentLocation;
+              location = info.currentLocation as Location;
               if (info has :currentLocationAccuracy && info.currentLocationAccuracy != null) {
                 mAccuracy = info.currentLocationAccuracy;
               }
@@ -43,7 +56,7 @@ module WhatAppBase {
           if (location == null) {
             var posnInfo = Position.getInfo();
             if (posnInfo != null && posnInfo has :position && posnInfo.position != null) {              
-              location = posnInfo.position;
+              location = posnInfo.position as Location;
               if (posnInfo has :accuracy && posnInfo.accuracy != null) {
                 mAccuracy = posnInfo.accuracy;                
               }
@@ -62,27 +75,40 @@ module WhatAppBase {
         }
       }     
 
-      hidden function locationChanged(location as Position.location?) {
-        if (mLocation == null && location == null ){ return false; }
-        if ( (mLocation != null && location == null) || (mLocation == null && location != null) ){ return true; }
+      hidden function locationChanged(location as Location?) as Boolean {
+        if (location == null) {
+          if (mLocation == null) { return false;
+          } else { return true; }
+        }
+        if (mLocation == null) {
+          if (location == null) { return false;
+          } else { return true; }
+        }
+        // This will crash the compiler when on strict level
+        // if (mLocation == null && location == null ){ return false; }
+        // if ( (mLocation != null && location == null) || (mLocation == null && location != null) ){ return true; }
 
-        var degrees = location.toDegrees();
-        var currentDegrees = mLocation.toDegrees();
+        var currentLocation = mLocation as Location;
+        var currentDegrees = currentLocation.toDegrees();
+
+        var newLocation = location as Location;
+        var degrees = newLocation.toDegrees();
+        
         return degrees[0] != currentDegrees[0] && degrees[1] != currentDegrees[1];        
       }
 
-      function getRelativeToObservation(latObservation, lonObservation) as Lang.String {
-        if (!hasLocation()) {
+      function getRelativeToObservation(latObservation as Float, lonObservation as Float) as String {
+        if (!hasLocation() || latObservation == 0.0 || lonObservation == 0.0 ) {
           return "";
         }
 
-        var degrees = mLocation.toDegrees();
+        var currentLocation = mLocation as Location;
+        var degrees = currentLocation.toDegrees();
         var latCurrent = degrees[0];
         var lonCurrent = degrees[1];
 
         var distanceMetric = "km";
-        var distance =
-            Utils.getDistanceFromLatLonInKm(latCurrent, lonCurrent, latObservation, lonObservation);
+        var distance = Utils.getDistanceFromLatLonInKm(latCurrent, lonCurrent, latObservation, lonObservation);
 
         var deviceSettings = System.getDeviceSettings();
         if (deviceSettings.distanceUnits == System.UNIT_STATUTE) {
@@ -92,7 +118,7 @@ module WhatAppBase {
         var bearing = Utils.getRhumbLineBearing(latCurrent, lonCurrent, latObservation, lonObservation);
         var compassDirection = Utils.getCompassDirection(bearing);
 
-        return Lang.format("$1$ $2$ ($3$)",[ distance.format("%.2f"), distanceMetric, compassDirection ]);
+        return format("$1$ $2$ ($3$)",[ distance.format("%.2f"), distanceMetric, compassDirection ]);
       }
     }
   }

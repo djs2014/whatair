@@ -3,38 +3,29 @@ import Toybox.Lang;
 import Toybox.WatchUi;
 import Toybox.Time;
 import Toybox.System;
-using Toybox.Application.Storage;
-using Toybox.Background;
+import Toybox.Application.Storage;
+import Toybox.Background;
+import Toybox.Math;
+using WhatAppBase.Types;
 using WhatAppBase.Utils;
-using Toybox.Math;
 
-var gBGServiceHandler = new BGServiceHandler();
-
-// Default false, n the background process, I set it to true.
-// (getServiceDelegate()), globals are not shared between foreground and
-// background process
-var gInBackground = false;
-var gAirQuality = new AirQuality();
-var gAQIndex = new AQIndex();
-var gDemo = false;
+// !! no global objects!
+// var gAirQuality as AirQuality?;// = new AirQuality();
+var gAQIndex as AQIndex?;// = new AQIndex();
 
 (:background) 
 class whatairApp extends Application.AppBase {
-    var mPreviousAirQuality = null;
+    var mPreviousAirQuality as AirQuality?;
+    var mBGServiceHandler as BGServiceHandler?; 
+    var mAirQuality as AirQuality?;
+    function initialize() { AppBase.initialize(); }
 
-    function initialize() {
-        AppBase.initialize();
-    }
-
-    // onStart() is called on application start up
     function onStart(state as Dictionary?) as Void {
     }
 
-    // onStop() is called when your application is exiting
     function onStop(state as Dictionary?) as Void {
     }
 
-    //! Return the initial view of your application here
     function getInitialView() as Array<Views or InputDelegates>? {
         loadUserSettings();
         return [ new whatairView() ] as Array<Views or InputDelegates>;
@@ -43,43 +34,45 @@ class whatairApp extends Application.AppBase {
     function onSettingsChanged() { loadUserSettings(); }
 
     function getServiceDelegate() as Lang.Array<System.ServiceDelegate> {
-      $.gInBackground = true;
       return [new AirQualityBGService()] as Lang.Array<System.ServiceDelegate>;
     }
 
-    function loadUserSettings() {
+    function loadUserSettings() as Void {
       try {
-        System.println("Load usersettings background:" + $.gInBackground);
+        System.println("Load usersettings");
         
         Storage.setValue("openWeatherAPIKey", Utils.getStringProperty("openWeatherAPIKey", ""));
 
-        if (gBGServiceHandler == null) {gBGServiceHandler = new BGServiceHandler(); }
-        gBGServiceHandler.setObservationTimeDelayedMinutes(Utils.getNumberProperty("observationTimeDelayedMinutesThreshold", 10));
-        gBGServiceHandler.setMinimalGPSLevel(Utils.getNumberProperty("minimalGPSquality", 3));
-        gBGServiceHandler.setUpdateFrequencyInMinutes(Utils.getNumberProperty("updateFrequencyWebReq", 5));
+        if ($.gAQIndex == null) {$.gAQIndex = new AQIndex(); }
+        if (mAirQuality == null) {mAirQuality = new AirQuality(); }
+        if (mBGServiceHandler == null) {mBGServiceHandler = new BGServiceHandler(); }
+        mBGServiceHandler.setObservationTimeDelayedMinutes(Utils.getNumberProperty("observationTimeDelayedMinutesThreshold", 10));
+        mBGServiceHandler.setMinimalGPSLevel(Utils.getNumberProperty("minimalGPSquality", 3));
+        mBGServiceHandler.setUpdateFrequencyInMinutes(Utils.getNumberProperty("updateFrequencyWebReq", 5));
         
         // Storage.setValue("openWeatherProxy",
         //            getStringProperty("openWeatherProxy", ""));
         // Storage.setValue("openWeatherProxyAPIKey",
         //            getStringProperty("openWeatherProxyAPIKey", ""));
-              
-        gAQIndex.NO2 = Utils.getNumberProperty("pollutionLimitNO2", gAQIndex.NO2);
-        gAQIndex.PM10 = Utils.getNumberProperty("pollutionLimitPM10", gAQIndex.PM10);
-        gAQIndex.O3 = Utils.getNumberProperty("pollutionLimitO3", gAQIndex.O3);
-        gAQIndex.PM2_5 = Utils.getNumberProperty("pollutionLimitPM2_5", gAQIndex.PM2_5);
-        gAQIndex.SO2 = Utils.getNumberProperty("pollutionLimitSO2", gAQIndex.SO2);
-        gAQIndex.NH3 = Utils.getNumberProperty("pollutionLimitNH3", gAQIndex.NH3);
-        gAQIndex.CO = Utils.getNumberProperty("pollutionLimitCO", gAQIndex.CO);
-        gAQIndex.NO = Utils.getNumberProperty("pollutionLimitNO", gAQIndex.NO);    
+        
+        $.gAQIndex.NO2 = Utils.getNumberProperty("pollutionLimitNO2", $.gAQIndex.NO2);
+        $.gAQIndex.PM10 = Utils.getNumberProperty("pollutionLimitPM10", $.gAQIndex.PM10);
+        $.gAQIndex.O3 = Utils.getNumberProperty("pollutionLimitO3", $.gAQIndex.O3);
+        $.gAQIndex.PM2_5 = Utils.getNumberProperty("pollutionLimitPM2_5", $.gAQIndex.PM2_5);
+        $.gAQIndex.SO2 = Utils.getNumberProperty("pollutionLimitSO2", $.gAQIndex.SO2);
+        $.gAQIndex.NH3 = Utils.getNumberProperty("pollutionLimitNH3", $.gAQIndex.NH3);
+        $.gAQIndex.CO = Utils.getNumberProperty("pollutionLimitCO", $.gAQIndex.CO);
+        $.gAQIndex.NO = Utils.getNumberProperty("pollutionLimitNO", $.gAQIndex.NO);    
 
-        $.gDemo = Utils.getBooleanProperty("demo", false); // @@ TODO demo force aqi level
-        if ($.gDemo) {
-          gBGServiceHandler.stopBGservice(); 
-          gBGServiceHandler.Disable();                    
+        // @@ TODO demo force aqi level
+        var demo = Utils.getBooleanProperty("demo", false) as Boolean; 
+        if (demo) {
+          mBGServiceHandler.stopBGservice(); 
+          mBGServiceHandler.Disable();                    
           setDemoData();          
         } else {
           restoreData();
-          gBGServiceHandler.Enable();          
+          mBGServiceHandler.Enable();          
         }
 
         System.println("loadUserSettings loaded");
@@ -88,7 +81,7 @@ class whatairApp extends Application.AppBase {
       }
     }
 
-    function setBackgroundUpdate(minutes) {
+    function setBackgroundUpdate(minutes as Number) as Void {
       if (Toybox.System has : ServiceDelegate) {
         System.println("setBackgroundUpdate registerForTemporalEvent " + minutes + " minutes");
         Background.registerForTemporalEvent(new Time.Duration(minutes * 60));
@@ -99,20 +92,21 @@ class whatairApp extends Application.AppBase {
     }
 
     // called in foreground
-    function onBackgroundData(data) {
-      System.println("Background data recieved background:" + $.gInBackground);
-      gBGServiceHandler.onBackgroundData(data, gAirQuality, :updateData);
-      gBGServiceHandler.setLastObservationMoment(gAirQuality.observationTime);      
+    function onBackgroundData(data as PersistableType) {
+      System.println("Background data recieved");
+      if (mBGServiceHandler == null) {mBGServiceHandler = new BGServiceHandler(); }
+      mBGServiceHandler.onBackgroundData(data, mAirQuality, :updateData);
+      // mBGServiceHandler.setLastObservationMoment(mAirQuality.observationTime);      
 
-      WatchUi.requestUpdate();
+      // WatchUi.requestUpdate();
     }
 
-    function setDemoData() {
+    function setDemoData() as Void {
       if (mPreviousAirQuality == null) {
-        mPreviousAirQuality = gAirQuality;
+        mPreviousAirQuality = mAirQuality;
         Math.srand(System.getTimer());
       }
-      gAirQuality = new AirQuality();
+      mAirQuality = new AirQuality();
       var aqi =  1 + Math.rand() % 5;
       var data = {
                     "coord" => {"lat" => 4.853500, "lon" => 52.353600},
@@ -129,12 +123,12 @@ class whatairApp extends Application.AppBase {
                     ]
                 };
 
-      gAirQuality.updateData(data);
+      mAirQuality.updateData(null, data);
     }
 
-    function restoreData() {
+    function restoreData()  as Void {
       if (mPreviousAirQuality != null) {
-        gAirQuality = mPreviousAirQuality;
+        mAirQuality = mPreviousAirQuality;
         mPreviousAirQuality = null;
       }
     }

@@ -2,24 +2,28 @@ import Toybox.Activity;
 import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.WatchUi;
+import Toybox.Application.Storage;
 using WhatAppBase.Utils;
 using WhatAppBase.Types;
-using Toybox.Application.Storage;
 
 class whatairView extends WatchUi.DataField {
 
-    var mNightMode = false;
-    var mColor = Graphics.COLOR_WHITE;
-    var mBackgroundColor = Graphics.COLOR_BLACK;
-    var mLabel = "";
-    var mFieldType = Types.WideField;
-    var mCurrentLocation = new Utils.CurrentLocation();
+    var mNightMode as Boolean = false;
+    var mColor as ColorType = Graphics.COLOR_WHITE;
+    var mBackgroundColor as ColorType = Graphics.COLOR_BLACK;
+    var mLabel as String = "";
+    var mFieldType as Types.FieldType = Types.WideField;
+    var mCurrentLocation as Utils.CurrentLocation = new Utils.CurrentLocation();
 
+    var mAirQuality as AirQuality?;
+    var mBGServiceHandler as BGServiceHandler?;
     function initialize() {
         DataField.initialize();
         mLabel = Application.loadResource(Rez.Strings.Label) as Lang.String;
-        gBGServiceHandler.setCurrentLocation(mCurrentLocation);
-        // gBGServiceHandler.setOnBeforeWebrequest(self, :onBeforeBGSchedule);
+
+        mBGServiceHandler = getApp().mBGServiceHandler;
+        mBGServiceHandler.setCurrentLocation(mCurrentLocation);        
+        mAirQuality = getApp().mAirQuality;
     }
 
     function onLayout(dc as Dc) as Void {
@@ -30,26 +34,15 @@ class whatairView extends WatchUi.DataField {
         mCurrentLocation.onCompute(info);
         mCurrentLocation.infoLocation();
 
+        mBGServiceHandler.onCompute(info);
+        mBGServiceHandler.autoScheduleService();         
+    }
       
-        gBGServiceHandler.onCompute(info);
-        gBGServiceHandler.autoScheduleService();         
-    }
-    
-    // function onBeforeBGSchedule() {
-    //     System.println("onBeforeBGSchedule");
-    //     var location = mCurrentLocation.getLocation();
-    //     if (location != null) {
-    //       Storage.setValue("currentDegrees", location.toDegrees());
-    //     else {
-    //       Storage.deleteValue("currentDegrees");                  
-    //     }
-    // }
-
     function onUpdate(dc as Dc) as Void {
-        renderAirQuality(dc, $.gAirQuality);
+        renderAirQuality(dc, mAirQuality);
     }
-
-    function renderAirQuality(dc, airQuality) {
+   
+    function renderAirQuality(dc as Dc, airQuality as AirQuality?) as Void {
     if (airQuality == null) {
       return;
     }
@@ -84,10 +77,11 @@ class whatairView extends WatchUi.DataField {
     if (obsPosition != null && obsPosition.length() > 0) {
        x = dc.getTextWidthInPixels(obsPosition, Graphics.FONT_SMALL) + 2;
     }
-    if (gBGServiceHandler.hasError()) {
-      status = gBGServiceHandler.getError();
+    var handler = mBGServiceHandler;
+    if (handler.hasError()) {
+      status = handler.getError();
     } else {
-      status = gBGServiceHandler.getStatus();
+      status = handler.getStatus();
     }
     // @@ make icons for error/stats
     dc.drawText(x, 1, Graphics.FONT_TINY, status, Graphics.TEXT_JUSTIFY_LEFT);
@@ -97,14 +91,13 @@ class whatairView extends WatchUi.DataField {
     var obsTime = Utils.getShortTimeString(airQuality.observationTime);
     if (mFieldType == Types.SmallField) { obsTime = ""; }
     
-    if (gBGServiceHandler.isDataDelayed()){
+    if (handler.isDataDelayed()){
       dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
       if (mFieldType == Types.SmallField) {
         obsTime = "!";
       }
     }
-    dc.drawText(dc.getWidth()-1, 1, Graphics.FONT_SMALL, obsTime,
-                Graphics.TEXT_JUSTIFY_RIGHT);
+    dc.drawText(dc.getWidth()-1, 1, Graphics.FONT_SMALL, obsTime,Graphics.TEXT_JUSTIFY_RIGHT);
     dc.setColor(mColor, Graphics.COLOR_TRANSPARENT);
 
     // air quality
@@ -128,13 +121,13 @@ class whatairView extends WatchUi.DataField {
     }    
   }
 
-  function renderAirQualityStats_WideField(dc, airQuality) {
+  function renderAirQualityStats_WideField(dc as Dc, airQuality as AirQuality) as Void {
     var hfInfo = dc.getFontHeight(Graphics.FONT_SMALL);
     dc.drawText(1, hfInfo + 1, Graphics.FONT_MEDIUM, airQuality.airQuality(),
                   Graphics.TEXT_JUSTIFY_LEFT);
-    var counter = "#" + gBGServiceHandler.getCounterStats();
+    var counter = "#" + mBGServiceHandler.getCounterStats();
     dc.drawText(1, 2 * hfInfo + 1, Graphics.FONT_SMALL, counter, Graphics.TEXT_JUSTIFY_LEFT);
-    var next = gBGServiceHandler.getWhenNextRequest();
+    var next = mBGServiceHandler.getWhenNextRequest();
     if (next != null) {
         var wCounter = dc.getTextWidthInPixels(counter, Graphics.FONT_SMALL);
         next = "(" + next + ")";
@@ -142,7 +135,8 @@ class whatairView extends WatchUi.DataField {
         dc.drawText(1 + wCounter + 1, 2 * hfInfo + 1, Graphics.FONT_TINY, next, Graphics.TEXT_JUSTIFY_LEFT);
     }
     // Longest text @@
-    var textWidth = dc.getTextWidthInPixels(airQuality.aqiName[5], Graphics.FONT_MEDIUM) + 2;
+    var longestText = airQuality.aqiName[5] as String;
+    var textWidth = dc.getTextWidthInPixels(longestText, Graphics.FONT_MEDIUM) + 2;
     var radius = (dc.getWidth() - textWidth) / 16;    
     var x = textWidth + radius;
     var y = hfInfo + radius;
@@ -159,14 +153,14 @@ class whatairView extends WatchUi.DataField {
     drawStats(dc, airQuality, x, y, radius, fontLabel, fontValue, margin, true);    
   }
 
-  function renderAirQualityStats_LargeField(dc, airQuality) {
+  function renderAirQualityStats_LargeField(dc as Dc, airQuality as AirQuality) as Void {
     // First line is gps info
     var hfl = dc.getFontHeight(Graphics.FONT_SMALL);
     dc.drawText(1, hfl, Graphics.FONT_SMALL,
                   mLabel + " " + airQuality.airQuality(), Graphics.TEXT_JUSTIFY_LEFT);
-    var counter = "#" + gBGServiceHandler.getCounterStats();
+    var counter = "#" + mBGServiceHandler.getCounterStats();
     dc.drawText(dc.getWidth()-1, hfl, Graphics.FONT_SMALL, counter, Graphics.TEXT_JUSTIFY_RIGHT);                  
-    var next = gBGServiceHandler.getWhenNextRequest();
+    var next = mBGServiceHandler.getWhenNextRequest();
     if (next != null) {
         var wCounter = dc.getTextWidthInPixels(counter, Graphics.FONT_SMALL);
         next = "(" + next + ")";
@@ -175,9 +169,9 @@ class whatairView extends WatchUi.DataField {
     }
 
     var hfInfo = 1 + (2 * hfl);
-    var radius = Utils.min(dc.getFontHeight(Graphics.FONT_MEDIUM), (dc.getHeight() - 2 * hfl) / 4);
-    var x = 1 + radius;
-    var y = hfInfo + radius;
+    var radius = Utils.min(dc.getFontHeight(Graphics.FONT_MEDIUM), (dc.getHeight() - 2 * hfl) / 4).toNumber();
+    var x = (1 + radius).toNumber();
+    var y = (hfInfo + radius).toNumber();
     
     var marginLeft = 3;
     var marginRight = 3;
@@ -194,7 +188,8 @@ class whatairView extends WatchUi.DataField {
   }
 
   // x,y center of circle
-  function drawStats(dc, airQuality, x, y, radius, fontLabel, fontValue, margin, newline) {
+  function drawStats(dc as Dc, airQuality as AirQuality, x as Number, y as Number, radius as Number,
+   fontLabel as FontType?,  fontValue as FontType?, margin as Number, newline as Boolean) as Void {
     var no2 = airQuality.no2;
     var pm10 = airQuality.pm10;
     var o3 = airQuality.o3;
@@ -206,13 +201,13 @@ class whatairView extends WatchUi.DataField {
     var no = airQuality.no;
 
     var startX = x;
-    drawCell(dc, x, y, radius, "NO2", no2, gAQIndex.NO2, fontLabel, fontValue);
+    drawCell(dc, x, y, radius, "NO2", no2, $.gAQIndex.NO2, fontLabel, fontValue);
     x = x + margin + 2 * radius;
-    drawCell(dc, x, y, radius, "PM10", pm10, gAQIndex.PM10, fontLabel, fontValue);
+    drawCell(dc, x, y, radius, "PM10", pm10, $.gAQIndex.PM10, fontLabel, fontValue);
     x = x + margin + 2 * radius;
-    drawCell(dc, x, y, radius, "O3", o3, gAQIndex.O3, fontLabel, fontValue);
+    drawCell(dc, x, y, radius, "O3", o3, $.gAQIndex.O3, fontLabel, fontValue);
     x = x + margin + 2 * radius;
-    drawCell(dc, x, y, radius, "PM2.5", pm2_5, gAQIndex.PM2_5, fontLabel, fontValue);
+    drawCell(dc, x, y, radius, "PM2.5", pm2_5, $.gAQIndex.PM2_5, fontLabel, fontValue);
     // new line
     if (newline) {
       x = startX; // radius already included
@@ -220,17 +215,19 @@ class whatairView extends WatchUi.DataField {
     } else {
       x = x + margin + 2 * radius;
     }    
-    drawCell(dc, x, y, radius, "SO2", so2, gAQIndex.SO2, fontLabel, fontValue);
+    drawCell(dc, x, y, radius, "SO2", so2, $.gAQIndex.SO2, fontLabel, fontValue);
     x = x + margin + 2 * radius;
-    drawCell(dc, x, y, radius, "NH3", nh3, gAQIndex.NH3, fontLabel, fontValue);
+    drawCell(dc, x, y, radius, "NH3", nh3, $.gAQIndex.NH3, fontLabel, fontValue);
     x = x + margin + 2 * radius;
-    drawCell(dc, x, y, radius, "CO", co, gAQIndex.CO, fontLabel, fontValue);
+    drawCell(dc, x, y, radius, "CO", co, $.gAQIndex.CO, fontLabel, fontValue);
     x = x + margin + 2 * radius;
-    drawCell(dc, x, y, radius, "NO", no, gAQIndex.NO, fontLabel, fontValue);
+    drawCell(dc, x, y, radius, "NO", no, $.gAQIndex.NO, fontLabel, fontValue);
 
   }
 
-  function drawCell(dc, x, y, radius, label, value, max, fontLabel, fontValue) {
+  function drawCell(dc as Dc, x as Number, y as Number, radius as Number, label as String,
+            value as Float?, max as Number, fontLabel as FontType?, fontValue as FontType?) as Void {
+
     var perc = Utils.percentageOf(value, max);
     var color = Utils.percentageToColor(perc);
     

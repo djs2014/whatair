@@ -2,12 +2,14 @@ import Toybox.Time;
 import Toybox.Application;
 import Toybox.System;
 import Toybox.Lang;
+import Toybox.Time.Gregorian;
 
-using Toybox.Time.Gregorian as Calendar;
 module WhatAppBase {
   (:Utils) 
   module Utils {
-    function isDelayedFor(timevalue, minutesDelayed) {
+    typedef TimeValue as Number or Time.Moment;
+
+    function isDelayedFor(timevalue as TimeValue?, minutesDelayed as Number) as Boolean {
       //! True if timevalue is later than now + minutesDelayed
       if (timevalue == null || minutesDelayed <= 0) {
         return false;
@@ -22,8 +24,7 @@ module WhatAppBase {
       return false;
     }
 
-    function ensureXSecondsPassed(previousMomentInSeconds as Lang.Number,
-                                  seconds as Lang.Number) as Lang.Boolean {
+    function ensureXSecondsPassed(previousMomentInSeconds as Number, seconds as Number) as Boolean {
       if (previousMomentInSeconds == null || previousMomentInSeconds <= 0) {
         return true;
       }
@@ -32,35 +33,39 @@ module WhatAppBase {
       return diff >= seconds;
     }
 
-    function getDateTimeString(moment) {
+    function getDateTimeString(moment as Time.Moment?) as String {
       if (moment != null && moment instanceof Time.Moment) {
-        var date = Calendar.info(moment, Time.FORMAT_SHORT);
-        return date.day.format("%02d") + "-" + date.month.format("%02d") + "-" +
+        var date = Gregorian.info(moment, Time.FORMAT_SHORT);
+        // return date.day.format("%02d") + "-" + date.month.format("%02d") + "-" +
+        //        date.year.format("%d") + " " + date.hour.format("%02d") + ":" +
+        //        date.min.format("%02d") + ":" + date.sec.format("%02d");
+        // @@ TODO debug what is value of date
+        return 
                date.year.format("%d") + " " + date.hour.format("%02d") + ":" +
                date.min.format("%02d") + ":" + date.sec.format("%02d");
       }
       return "";
     }
 
-    function getTimeString(moment) {
+    function getTimeString(moment as Time.Moment?) as String {
       if (moment != null && moment instanceof Time.Moment) {
-        var date = Calendar.info(moment, Time.FORMAT_SHORT);
+        var date = Gregorian.info(moment, Time.FORMAT_SHORT);
         return date.hour.format("%02d") + ":" + date.min.format("%02d") + ":" +
                date.sec.format("%02d");
       }
        return "";
     }
 
-    function getShortTimeString(moment) {
+    function getShortTimeString(moment as Time.Moment?) as String {
       if (moment != null && moment instanceof Time.Moment) {
-        var date = Calendar.info(moment, Time.FORMAT_SHORT);
+        var date = Gregorian.info(moment, Time.FORMAT_SHORT);
         return date.hour.format("%02d") + ":" + date.min.format("%02d");
       }
        return "";
     }
 
     // template: "{h}:{m}:{s}"
-    function millisecondsToShortTimeString(totalMilliSeconds, template as Lang.String) {
+    function millisecondsToShortTimeString(totalMilliSeconds as Number, template as String) as String {
       if (totalMilliSeconds != null && totalMilliSeconds instanceof Lang.Number) {
         var hours = (totalMilliSeconds / (1000.0 * 60 * 60)).toNumber() % 24;
         var minutes = (totalMilliSeconds / (1000.0 * 60.0)).toNumber() % 60;
@@ -78,7 +83,7 @@ module WhatAppBase {
       return "";
     }
     // template: "{h}:{m}:{s}"
-    function secondsToShortTimeString(totalSeconds, template as Lang.String) {
+    function secondsToShortTimeString(totalSeconds as Number, template as String) as String {
       if (totalSeconds != null && totalSeconds instanceof Lang.Number) {
         var hours = (totalSeconds / (60 * 60)).toNumber() % 24;
         var minutes = (totalSeconds / 60.0).toNumber() % 60;
@@ -94,21 +99,6 @@ module WhatAppBase {
       return "";
     }
 
-    function stringReplace(str, oldString, newString) {
-      var result = str;
-      if (str == null || oldString == null || newString == null) { return str; }
-
-      var index = result.find(oldString);
-      var count = 0;
-      while (index != null && count < 30)
-      {
-        var indexEnd = index + oldString.length();
-        result = result.substring(0, index) + newString + result.substring(indexEnd, result.length());
-        index = result.find(oldString);
-        count = count + 1;
-      }
-
-      return result;
-    } 
+    
   }
 }

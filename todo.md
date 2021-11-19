@@ -1,5 +1,8 @@
+sync location utils -> base
+sync time utils -> base
+compare utils ..
+
 Widget ..
-sync location utils
 - alert / beep
 
 x - set concentration limit using settings
