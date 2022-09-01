@@ -5,8 +5,8 @@ import Toybox.Graphics; // @@ TEST in background process
 using WhatAppBase.Colors;
 
 class AirQuality {
-  var lat as Float = 0.0f;
-  var lon as Float = 0.0f;
+  var lat as Double = 0.0d;
+  var lon as Double = 0.0d;
   // Carbon monoxide (CO), Nitrogen monoxide (NO), Nitrogen dioxide (NO2), Ozone
   // (O3), Sulphur dioxide (SO2), Ammonia (NH3), and particulates (PM2.5 and
   // PM10).
@@ -34,8 +34,8 @@ class AirQuality {
   function initialize() {}
 
   function reset()  as Void {
-    lat = 0.0f;
-    lon = 0.0f;
+    lat = 0.0d;
+    lon = 0.0d;
     //
     so2 = null;
     nh3 = null;
@@ -62,10 +62,8 @@ class AirQuality {
       if (data == null) { return; }
       var coord = data["coord"] as Dictionary; //<String, Float>;
       if (coord != null) {
-        // lat = getValue(coord["lat"], 0.0) as Float;
-        // lon = getValue(coord["lon"], 0.0) as Float;
-        lat = getValueAsFloat(coord, "lat", 0.0f) as Float;
-        lon = getValueAsFloat(coord, "lon", 0.0f) as Float;
+        lat = getValueAsDouble(coord, "lat", 0.0d) as Double;
+        lon = getValueAsDouble(coord, "lon", 0.0d) as Double;
       }
       // var list = data["list"][0] as Dictionary;
       var list = data["list"] as Array;
@@ -114,6 +112,20 @@ class AirQuality {
     return aqiName[aqi] as String;
   }
 
+  function airQualityIdx() as String {
+    if (aqi == null || aqi < 0 || aqi > aqiName.size()) {
+      return "";
+    }
+    return aqi.format("%d");
+  }
+
+  function airQualityIdxM() as String {
+    if (aqi == null || aqi < 0 || aqi > aqiName.size()) {
+      return "";
+    }
+    return aqi.format("%d") + "/5";
+  }
+
 function airQualityAsColor() as ColorType? {
     if (aqi == null || aqi <= 0 || aqi > aqiName.size()) {
       return null;
@@ -145,12 +157,18 @@ function airQualityAsColor() as ColorType? {
   hidden function getValueAsFloat(data as Dictionary, key as String, defaultValue as Float?) as Float? {
     var value = data.get(key);
     if (value == null) { return defaultValue; }
-    return value as Float;
+    return (value as Float).toFloat();
+  }
+
+  hidden function getValueAsDouble(data as Dictionary, key as String, defaultValue as Double?) as Double? {
+    var value = data.get(key);
+    if (value == null) { return defaultValue; }
+    return (value as Double).toDouble();
   }
 
   hidden function getValueAsNumber(data as Dictionary, key as String, defaultValue as Number) as Number {
     var value = data.get(key);
     if (value == null) { return defaultValue; }
-    return value as Number;
+    return (value as Number).toNumber();
   }
 }

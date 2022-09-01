@@ -17,6 +17,7 @@ class whatairView extends WatchUi.DataField {
     var mCurrentLocation as Utils.CurrentLocation = new Utils.CurrentLocation();
 
     var mAirQuality as AirQuality?;
+    var mAQIndex as AQIndex?;
     var mBGServiceHandler as BGServiceHandler?;
     function initialize() {
         DataField.initialize();
@@ -25,6 +26,7 @@ class whatairView extends WatchUi.DataField {
         var handler = getBGServiceHandler();
         handler.setCurrentLocation(mCurrentLocation);        
         mAirQuality = getApp().mAirQuality;
+        mAQIndex = getApp().mAQIndex;
     }
 
     hidden function getBGServiceHandler() as BGServiceHandler {
@@ -39,8 +41,8 @@ class whatairView extends WatchUi.DataField {
     }
 
     function compute(info as Activity.Info) as Void {
-        mCurrentLocation.onCompute(info);
-        mCurrentLocation.infoLocation();
+        // mCurrentLocation.onCompute(info);
+        // mCurrentLocation.infoLocation();
 
         var handler = getBGServiceHandler();
         handler.onCompute(info);
@@ -134,8 +136,12 @@ class whatairView extends WatchUi.DataField {
 
   function renderAirQualityStats_WideField(dc as Dc, airQuality as AirQuality) as Void {
     var hfInfo = dc.getFontHeight(Graphics.FONT_SMALL);
-    dc.drawText(1, hfInfo + 1, Graphics.FONT_MEDIUM, airQuality.airQuality(),
-                  Graphics.TEXT_JUSTIFY_LEFT);
+    var aqText = airQuality.airQuality();
+    dc.drawText(1, hfInfo + 1, Graphics.FONT_MEDIUM, aqText, Graphics.TEXT_JUSTIFY_LEFT);
+
+    var w = dc.getTextWidthInPixels(aqText, Graphics.FONT_MEDIUM);
+    dc.drawText(1 + w + 1, hfInfo + 1, Graphics.FONT_XTINY, airQuality.airQualityIdx(), Graphics.TEXT_JUSTIFY_LEFT);
+
     // @@DRY
     var handler = getBGServiceHandler();                  
     var counter = "#" + handler.getCounterStats();
@@ -169,8 +175,12 @@ class whatairView extends WatchUi.DataField {
   function renderAirQualityStats_LargeField(dc as Dc, airQuality as AirQuality) as Void {
     // First line is gps info
     var hfl = dc.getFontHeight(Graphics.FONT_SMALL);
-    dc.drawText(1, hfl, Graphics.FONT_SMALL,
-                  mLabel + " " + airQuality.airQuality(), Graphics.TEXT_JUSTIFY_LEFT);
+    
+    var aqText = mLabel + " " + airQuality.airQuality();
+    dc.drawText(1, hfl, Graphics.FONT_SMALL, aqText, Graphics.TEXT_JUSTIFY_LEFT);
+    var w = dc.getTextWidthInPixels(aqText, Graphics.FONT_SMALL);
+    dc.drawText(1 + w + 1, hfl, Graphics.FONT_XTINY, "(" + airQuality.airQualityIdxM() + ")", Graphics.TEXT_JUSTIFY_LEFT);
+
     // @@DRY
     var handler = getBGServiceHandler();  
     var counter = "#" + handler.getCounterStats();
@@ -215,14 +225,15 @@ class whatairView extends WatchUi.DataField {
     var co = airQuality.co;
     var no = airQuality.no;
 
+    var AQmeanValue = mAQIndex as AQIndex;
     var startX = x;
-    drawCell(dc, x, y, radius, "NO2", no2, $.gAQIndex.NO2, fontLabel, fontValue);
+    drawCell(dc, x, y, radius, "NO2", no2, AQmeanValue.NO2, fontLabel, fontValue);
     x = x + margin + 2 * radius;
-    drawCell(dc, x, y, radius, "PM10", pm10, $.gAQIndex.PM10, fontLabel, fontValue);
+    drawCell(dc, x, y, radius, "PM10", pm10, AQmeanValue.PM10, fontLabel, fontValue);
     x = x + margin + 2 * radius;
-    drawCell(dc, x, y, radius, "O3", o3, $.gAQIndex.O3, fontLabel, fontValue);
+    drawCell(dc, x, y, radius, "O3", o3, AQmeanValue.O3, fontLabel, fontValue);
     x = x + margin + 2 * radius;
-    drawCell(dc, x, y, radius, "PM2.5", pm2_5, $.gAQIndex.PM2_5, fontLabel, fontValue);
+    drawCell(dc, x, y, radius, "PM2.5", pm2_5, AQmeanValue.PM2_5, fontLabel, fontValue);
     // new line
     if (newline) {
       x = startX; // radius already included
@@ -230,13 +241,13 @@ class whatairView extends WatchUi.DataField {
     } else {
       x = x + margin + 2 * radius;
     }    
-    drawCell(dc, x, y, radius, "SO2", so2, $.gAQIndex.SO2, fontLabel, fontValue);
+    drawCell(dc, x, y, radius, "SO2", so2, AQmeanValue.SO2, fontLabel, fontValue);
     x = x + margin + 2 * radius;
-    drawCell(dc, x, y, radius, "NH3", nh3, $.gAQIndex.NH3, fontLabel, fontValue);
+    drawCell(dc, x, y, radius, "NH3", nh3, AQmeanValue.NH3, fontLabel, fontValue);
     x = x + margin + 2 * radius;
-    drawCell(dc, x, y, radius, "CO", co, $.gAQIndex.CO, fontLabel, fontValue);
+    drawCell(dc, x, y, radius, "CO", co, AQmeanValue.CO, fontLabel, fontValue);
     x = x + margin + 2 * radius;
-    drawCell(dc, x, y, radius, "NO", no, $.gAQIndex.NO, fontLabel, fontValue);
+    drawCell(dc, x, y, radius, "NO", no, AQmeanValue.NO, fontLabel, fontValue);
 
   }
 

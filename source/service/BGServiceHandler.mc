@@ -47,6 +47,9 @@ class BGServiceHandler {
     }
     function onCompute(info as Activity.Info) as Void {
         mPhoneConnected = System.getDeviceSettings().phoneConnected;        
+        if (mCurrentLocation != null) {
+            mCurrentLocation.onCompute(info);
+        }
     }
 
     function autoScheduleService() as Void {
@@ -168,7 +171,7 @@ class BGServiceHandler {
             }
         }    
     }
-    function setLastObservationMoment(moment as Time.Moment) as Void {
+    function setLastObservationMoment(moment as Time.Moment?) as Void {
         mLastObservationMoment = moment;
     }
 

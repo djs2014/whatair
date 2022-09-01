@@ -106,7 +106,7 @@ class AirQualityBGService extends Toybox.System.ServiceDelegate {
   function onReceiveOpenWeatherResponse(responseCode as String, responseData as Dictionary?) as Void {
     if (responseCode == 200 && responseData != null) {
       try {
-        printJson(responseData);
+        // printJson(responseData);
 
         //    Background: coord: {lon=>4.853500, lat=>52.353600}
         // Background: list: [{components=>{so2=>4.830000, nh3=>0.840000,

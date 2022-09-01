@@ -1,5 +1,12 @@
-sync location utils -> base
-sync time utils -> base
+lat+lon -> double instead of float
+update utils -> property value etc.
+
+
+strict
+alerts
+last time requested -> show time elapsed hh:mm:ss
+x sync location utils -> base
+x sync time utils -> base
 compare utils ..
 
 Widget ..

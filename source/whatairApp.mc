@@ -10,70 +10,78 @@ using WhatAppBase.Types;
 using WhatAppBase.Utils;
 
 // !! no global objects!
-// var gAirQuality as AirQuality?;// = new AirQuality();
-var gAQIndex as AQIndex?;// = new AQIndex();
-
 (:background) 
-class whatairApp extends Application.AppBase {
+class whatairApp extends Application.AppBase {    
     var mPreviousAirQuality as AirQuality?;
-    var mBGServiceHandler as BGServiceHandler?; 
     var mAirQuality as AirQuality?;
+    var mAQIndex as AQIndex?;
+    var mBGServiceHandler as BGServiceHandler?; 
+
     function initialize() { AppBase.initialize(); }
+    
+    function onStart(state as Dictionary?) as Void { }
+    
+    function onStop(state as Dictionary?) as Void { }
 
-    function onStart(state as Dictionary?) as Void {
-    }
-
-    function onStop(state as Dictionary?) as Void {
-    }
-
+    (:typecheck(disableBackgroundCheck))
     function getInitialView() as Array<Views or InputDelegates>? {
-        loadUserSettings();
-        return [ new whatairView() ] as Array<Views or InputDelegates>;
+      loadUserSettings();
+      return [ new whatairView() ] as Array<Views or InputDelegates>;
     }
 
+    (:typecheck(disableBackgroundCheck))
     function onSettingsChanged() { loadUserSettings(); }
 
+    (:typecheck(disableBackgroundCheck))
     function getServiceDelegate() as Lang.Array<System.ServiceDelegate> {
       return [new AirQualityBGService()] as Lang.Array<System.ServiceDelegate>;
     }
 
+    (:typecheck(disableBackgroundCheck))
     function getBGServiceHandler() as BGServiceHandler {
-      if (mBGServiceHandler == null) {
-        mBGServiceHandler = new BGServiceHandler();
-      }
+      if (mBGServiceHandler == null) { mBGServiceHandler = new BGServiceHandler(); }
       return mBGServiceHandler;
     }
 
+    (:typecheck(disableBackgroundCheck))
+    function getAQIndex() as AQIndex { 
+      if (mAQIndex == null) { mAQIndex = new AQIndex(); }
+      return mAQIndex;
+    }
+
+     (:typecheck(disableBackgroundCheck))
+    function getAirQuality() as AirQuality {
+      if (mAirQuality == null) { mAirQuality = new AirQuality(); }
+      return mAirQuality;
+    }
+
+    (:typecheck(disableBackgroundCheck))
     function loadUserSettings() as Void {
       try {
         System.println("Load usersettings");
         
-        Storage.setValue("openWeatherAPIKey", Utils.getStringProperty("openWeatherAPIKey", ""));
+        Storage.setValue("openWeatherAPIKey", Utils.getApplicationPropertyAsString("openWeatherAPIKey", ""));
 
-        if ($.gAQIndex == null) {$.gAQIndex = new AQIndex(); }
+        if (mAQIndex == null) {mAQIndex = new AQIndex(); }
         if (mAirQuality == null) {mAirQuality = new AirQuality(); }
-        var handler =  getBGServiceHandler();
-        // if (mBGServiceHandler == null) {mBGServiceHandler = new BGServiceHandler(); }
-        handler.setObservationTimeDelayedMinutes(Utils.getNumberProperty("observationTimeDelayedMinutesThreshold", 10));
-        handler.setMinimalGPSLevel(Utils.getNumberProperty("minimalGPSquality", 3));
-        handler.setUpdateFrequencyInMinutes(Utils.getNumberProperty("updateFrequencyWebReq", 5));
-        
-        // Storage.setValue("openWeatherProxy",
-        //            getStringProperty("openWeatherProxy", ""));
-        // Storage.setValue("openWeatherProxyAPIKey",
-        //            getStringProperty("openWeatherProxyAPIKey", ""));
-        
-        $.gAQIndex.NO2 = Utils.getNumberProperty("pollutionLimitNO2", $.gAQIndex.NO2);
-        $.gAQIndex.PM10 = Utils.getNumberProperty("pollutionLimitPM10", $.gAQIndex.PM10);
-        $.gAQIndex.O3 = Utils.getNumberProperty("pollutionLimitO3", $.gAQIndex.O3);
-        $.gAQIndex.PM2_5 = Utils.getNumberProperty("pollutionLimitPM2_5", $.gAQIndex.PM2_5);
-        $.gAQIndex.SO2 = Utils.getNumberProperty("pollutionLimitSO2", $.gAQIndex.SO2);
-        $.gAQIndex.NH3 = Utils.getNumberProperty("pollutionLimitNH3", $.gAQIndex.NH3);
-        $.gAQIndex.CO = Utils.getNumberProperty("pollutionLimitCO", $.gAQIndex.CO);
-        $.gAQIndex.NO = Utils.getNumberProperty("pollutionLimitNO", $.gAQIndex.NO);    
+        var handler =  getBGServiceHandler();        
+        handler.setObservationTimeDelayedMinutes(Utils.getApplicationPropertyAsNumber("observationTimeDelayedMinutesThreshold", 10));
+        handler.setMinimalGPSLevel(Utils.getApplicationPropertyAsNumber("minimalGPSquality", 3));
+        handler.setUpdateFrequencyInMinutes(Utils.getApplicationPropertyAsNumber("updateFrequencyWebReq", 5));
+                
+        var AQIdx = getAQIndex();
+        AQIdx.NO2 = Utils.getApplicationPropertyAsNumber("pollutionLimitNO2", AQIdx.NO2);
+        AQIdx.PM10 = Utils.getApplicationPropertyAsNumber("pollutionLimitPM10", AQIdx.PM10);
+        AQIdx.O3 = Utils.getApplicationPropertyAsNumber("pollutionLimitO3", AQIdx.O3);
+        AQIdx.PM2_5 = Utils.getApplicationPropertyAsNumber("pollutionLimitPM2_5", AQIdx.PM2_5);
+        AQIdx.SO2 = Utils.getApplicationPropertyAsNumber("pollutionLimitSO2", AQIdx.SO2);
+        AQIdx.NH3 = Utils.getApplicationPropertyAsNumber("pollutionLimitNH3", AQIdx.NH3);
+        AQIdx.CO = Utils.getApplicationPropertyAsNumber("pollutionLimitCO", AQIdx.CO);
+        AQIdx.NO = Utils.getApplicationPropertyAsNumber("pollutionLimitNO", AQIdx.NO);    
+        mAQIndex = AQIdx;
 
         // @@ TODO demo force aqi level
-        var demo = Utils.getBooleanProperty("demo", false) as Boolean; 
+        var demo = Utils.getApplicationPropertyAsBoolean("demo", false); 
         if (demo) {
           handler.stopBGservice(); 
           handler.Disable();                    
@@ -89,6 +97,7 @@ class whatairApp extends Application.AppBase {
       }
     }
 
+    (:typecheck(disableBackgroundCheck))
     function setBackgroundUpdate(minutes as Number) as Void {
       if (Toybox.System has :ServiceDelegate) {
         System.println("setBackgroundUpdate registerForTemporalEvent " + minutes + " minutes");
@@ -100,15 +109,17 @@ class whatairApp extends Application.AppBase {
     }
 
     // called in foreground
+    (:typecheck(disableBackgroundCheck))
     function onBackgroundData(data as PersistableType) {
       System.println("Background data recieved");
-      var handler = getBGServiceHandler();
-      // if (mBGServiceHandler == null) {mBGServiceHandler = new BGServiceHandler(); }
-      handler.onBackgroundData(data, mAirQuality, :updateData);
+      System.println(data);
+      var handler = getBGServiceHandler();      
+      handler.onBackgroundData(data, getAirQuality(), :updateData);
       
-      // WatchUi.requestUpdate();
+      WatchUi.requestUpdate();
     }
 
+    (:typecheck(disableBackgroundCheck))
     function setDemoData() as Void {
       if (mPreviousAirQuality == null) {
         mPreviousAirQuality = mAirQuality;
@@ -131,7 +142,7 @@ class whatairApp extends Application.AppBase {
                     ]
                 };
 
-      mAirQuality.updateData(null, data);
+      getAirQuality().updateData(null, data);
     }
 
     function restoreData()  as Void {
